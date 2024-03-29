@@ -157,6 +157,11 @@ public class UserService {
 	}
 
 	public void sendVerificationCode(String email) {
+		// find if email has been registered
+		User user = userRepository.getByEmail(email);
+		if (user != null) {
+			throw new AccountException("email has been registered");
+		}
 		// generate verification code and store in redis
 		String code = RandomCodeGenerator.generateVerificationCode();
 		redisRepository.setWithTimeLimit(RedisKey.VERIFICATION_CODE, email, code, 60 * 10);
@@ -177,7 +182,7 @@ public class UserService {
 		}
 		// set message meta for mq
 		MessageMeta messageMeta = new MessageMeta();
-		messageMeta.setMessageType(MessageType.MAIL_VERIFICATION_CODE);
+		messageMeta.setMessageType(MessageType.MAIL_RESET_PASSWORD);
 		Map<String, Object> data = new HashMap<>();
 		data.put("email", email);
 		data.put("appId", user.getAppId());
