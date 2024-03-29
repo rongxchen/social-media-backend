@@ -114,7 +114,7 @@ public class UserService {
 		HashMap<String, String> claims = new HashMap<>();
 		claims.put("appId", user.getAppId());
 		claims.put("role", user.getRole());
-		String accessToken = JwtUtil.generateToken(claims, 30);
+		String accessToken = JwtUtil.generateToken(claims);
 		String refreshToken = JwtUtil.generateToken(claims, 60 * 24 * 7);
 		Map<String, Object> map = new HashMap<>();
 		map.put("userInfo", userVo);
@@ -133,8 +133,8 @@ public class UserService {
 		User user = userRepository.getByAppId(appId);
 		checkUserExists(user);
 		if (!user.getUsername().equals(userVO.getUsername())) {
-			if (ChronoUnit.DAYS.between(LocalDate.now(), user.getUpdateTime()) < 30) {
-				throw new AccountException("username can only be updated once every 30 days");
+			if (ChronoUnit.DAYS.between(LocalDate.now(), user.getUpdateTime()) < 15) {
+				throw new AccountException("username can only be updated once every 15 days");
 			}
 			user.setUsername(userVO.getUsername());
 			user.setUpdateTime(LocalDate.now());

@@ -1,6 +1,7 @@
 package rongxchen.socialmedia.exceptions;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -30,6 +31,11 @@ public class GlobalExceptionHandler {
 				return Result.fail(exception.getMessage());
 			}
 		}
+	}
+
+	@ExceptionHandler(UnauthorizedException.class)
+	public ResponseEntity<String> handleUnauthorizedException(UnauthorizedException exception) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 	}
 
 	@ExceptionHandler(MissingServletRequestParameterException.class)

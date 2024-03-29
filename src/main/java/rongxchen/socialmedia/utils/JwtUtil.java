@@ -7,6 +7,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import org.springframework.http.HttpStatus;
 import rongxchen.socialmedia.exceptions.HttpException;
+import rongxchen.socialmedia.exceptions.UnauthorizedException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -32,6 +33,10 @@ public class JwtUtil {
 				.sign(Algorithm.HMAC256(SEC_KEY));
 	}
 
+	public static String generateToken(Map<String, String> payloads) {
+		return generateToken(payloads, 1);
+	}
+
 	public static Map<String, String> decodeToken(String token) {
 		try {
 			JWTVerifier verifier = JWT.require(Algorithm.HMAC256(SEC_KEY)).build();
@@ -45,7 +50,7 @@ public class JwtUtil {
 			decode.getClaims().forEach((k, v) -> decoded.put(k, v.asString()));
 			return decoded;
 		} catch (JWTVerificationException e) {
-			throw new HttpException(HttpStatus.BAD_REQUEST, "invalid token");
+			throw new UnauthorizedException("token expired");
 		}
 	}
 

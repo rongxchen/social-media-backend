@@ -62,7 +62,7 @@ public class UserController {
 		return Result.ok(true);
 	}
 
-	@GetMapping
+	@GetMapping("/refresh-token")
 	public Result<Map<String, String>> refreshToken(@RequestHeader("refresh-token") String refreshToken) {
 		Map<String, String> map = userService.refreshToken(refreshToken);
 		return Result.ok(map);
