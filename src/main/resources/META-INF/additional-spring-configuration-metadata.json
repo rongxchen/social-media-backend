@@ -1,0 +1,23 @@
+{
+  "properties": [
+    {
+      "name": "azure.communication.connection-string",
+      "type": "java.lang.String",
+      "description": "Description for azure.communication.connection-string."
+    },
+    {
+      "name": "azure.communication.email.sender-address",
+      "type": "java.lang.String",
+      "description": "Description for azure.communication.email.sender-address."
+    },
+    {
+      "name": "azure.communication.email.sender-name",
+      "type": "java.lang.String",
+      "description": "Description for azure.communication.email.sender-name."
+    },
+    {
+      "name": "frontend.url",
+      "type": "java.lang.String",
+      "description": "Description for frontend.url."
+    }
+  ] }
