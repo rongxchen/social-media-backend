@@ -1,14 +1,11 @@
 package rongxchen.socialmedia.common.message_queue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import rongxchen.socialmedia.exceptions.HttpException;
 import rongxchen.socialmedia.models.mq.MessageMeta;
 import rongxchen.socialmedia.service.azure.AzureMailService;
+import rongxchen.socialmedia.utils.ObjectUtil;
 
 import javax.annotation.Resource;
 
@@ -25,27 +22,25 @@ public class AzureMailConsumer implements RocketMQListener<String> {
 	private AzureMailService azureMailService;
 
 	@Resource
-	private ObjectMapper objectMapper;
+	private ObjectUtil objectUtil;
 
 	@Override
 	public void onMessage(String message) {
-		MessageMeta messageMeta;
-		try {
-			messageMeta = objectMapper.readValue(message, MessageMeta.class);
-		} catch (JsonProcessingException e) {
-			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to parse message");
-		}
+		MessageMeta messageMeta = objectUtil.readObject(message, MessageMeta.class);
+		System.out.println(messageMeta);
 		switch (messageMeta.getMessageType()) {
-			case MAIL_VERIFICATION_CODE -> {
-				String email = messageMeta.get("email");
-				String code = messageMeta.get("code");
+			case "mail_verification_code": {
+				String email = messageMeta.getString("email");
+				String code = messageMeta.getString("code");
 				azureMailService.sendVerificationCode(email, code);
+				break;
 			}
-			case MAIL_RESET_PASSWORD -> {
-				String appId = messageMeta.get("appId");
-				String username = messageMeta.get("username");
-				String email = messageMeta.get("email");
+			case "mail_reset_password": {
+				String appId = messageMeta.getString("appId");
+				String username = messageMeta.getString("username");
+				String email = messageMeta.getString("email");
 				azureMailService.sendResetPassword(appId, username, email);
+				break;
 			}
 		}
 	}

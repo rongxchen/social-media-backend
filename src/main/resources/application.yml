@@ -1,30 +1,50 @@
 spring:
+  # basic
   application:
     name: SocialMedia
+  # mongodb
   data:
     mongodb:
-#      password: mysocialmedia2024
-      uri: mongodb://my-social-media-cosmos:9JzCPmnzPUssLOkRLAPQQYlp2Mj1q7Zw58s3nO5o5vtSQ2DrFaDWIMSneam2J6kfboTukgpdfaqUACDbX5n6MA==@my-social-media-cosmos.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@my-social-media-cosmos@
-      database: my-social-media-db
+      # password: mysocialmedia2024
+      uri: mongodb://localhost:27017 # mongodb://my-social-media-cosmos:9JzCPmnzPUssLOkRLAPQQYlp2Mj1q7Zw58s3nO5o5vtSQ2DrFaDWIMSneam2J6kfboTukgpdfaqUACDbX5n6MA==@my-social-media-cosmos.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@my-social-media-cosmos@
+      database: my-social-media # my-social-media-db
+  # redis
   redis:
     host: localhost
     port: 6379
+  # file upload settings
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 20MB
+  # azure blob
+  cloud:
+    azure:
+      storage:
+        blob:
+          account-name: mysocialmediastorage
+          account-key: 5Z8rXfkKRZV0R+fTkejxKDCLDiJgMUGEtgvrBrKOuk3rJz/cvtVEyDocfdnozJFb6oHuUFbkSFHV+AStAJ3CjQ==
+          endpoint: https://mysocialmediastorage.blob.core.windows.net/media
+
 server:
   port: 8080
+
 azure:
   communication:
     connection-string: "endpoint=https://my-azure-communication.asiapacific.communication.azure.com/;accesskey=akE1n6Ugtpa4Q7y7AW0ur+43R1K+XdEWpQVXeEATtO9m/uRx3dgHsQXnqO2e54+ZevvZB1KSC6gdVSvlv2bK7A=="
     email:
       sender-address: "DoNotReply@3fce49cd-cdaf-482b-90a6-6752e6f1fb8d.azurecomm.net"
       sender-name: "My Social Media"
+
 frontend:
   url: "http://localhost:3000"
+
 rocketmq:
   name-server: localhost:9876
   producer:
     group: "social-producer"
     send-message-timeout: 3000
-    retry-times-when-send-failed: 3
-    retry-times-when-send-async-failed: 2
+    retry-times-when-send-failed: 0
+    retry-times-when-send-async-failed: 0
   consumer:
     group: "social-consumer"

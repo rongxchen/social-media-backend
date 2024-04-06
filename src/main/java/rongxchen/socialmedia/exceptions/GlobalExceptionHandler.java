@@ -21,13 +21,13 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(HttpException.class)
 	public Result<String> handleHttpException(HttpException exception) {
 		switch (exception.getStatus()) {
-			case BAD_REQUEST -> {
+			case BAD_REQUEST: {
 				return new Result<>(HttpStatus.BAD_REQUEST.value(), null, exception.getMessage());
 			}
-			case UNAUTHORIZED -> {
+			case UNAUTHORIZED: {
 				return new Result<>(HttpStatus.UNAUTHORIZED.value(), null, exception.getMessage());
 			}
-			default -> {
+			default: {
 				return Result.fail(exception.getMessage());
 			}
 		}
@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(UnauthorizedException.class)
 	public ResponseEntity<String> handleUnauthorizedException(UnauthorizedException exception) {
-		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exception.getMessage());
 	}
 
 	@ExceptionHandler(MissingServletRequestParameterException.class)

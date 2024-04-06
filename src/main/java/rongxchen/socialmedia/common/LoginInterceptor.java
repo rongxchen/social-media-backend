@@ -28,25 +28,29 @@ public class LoginInterceptor implements HandlerInterceptor {
 			return true;
 		}
 		Method method = ((HandlerMethod) handler).getMethod();
-		if (method.isAnnotationPresent(LoginToken.class)) {
-			LoginToken loginToken = method.getAnnotation(LoginToken.class);
-			if (loginToken.required()) {
-				String token = request.getHeader("Authorization");
-				if (token == null || !token.startsWith("Bearer ")) {
-					throw new HttpException(HttpStatus.BAD_REQUEST, "no token");
-				}
-				token = token.replace("Bearer ", "");
-				Map<String, String> claims = JwtUtil.decodeToken(token);
-				if (!claims.getOrDefault("role", "").equals(loginToken.role())) {
-					throw new HttpException(HttpStatus.UNAUTHORIZED, "not authorized to perform this action");
-				}
-				if (claims.containsKey("appId")) {
-					request.setAttribute("appId", claims.getOrDefault("appId", ""));
-					return true;
-				}
-				throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "error decoding token");
-			}
+		LoginToken loginToken = method.getAnnotation(LoginToken.class);
+		if (loginToken == null) {
+			loginToken = method.getDeclaringClass().getAnnotation(LoginToken.class);
+		}
+		if (loginToken == null) {
 			return true;
+		}
+		// if login token annotation found
+		if (loginToken.required()) {
+			String token = request.getHeader("Authorization");
+			if (token == null || !token.startsWith("Bearer ")) {
+				throw new HttpException(HttpStatus.BAD_REQUEST, "no token");
+			}
+			token = token.replace("Bearer ", "");
+			Map<String, String> claims = JwtUtil.decodeToken(token);
+			if (!claims.getOrDefault("role", "").equals(loginToken.role())) {
+				throw new HttpException(HttpStatus.UNAUTHORIZED, "not authorized to perform this action");
+			}
+			if (claims.containsKey("appId")) {
+				request.setAttribute("appId", claims.getOrDefault("appId", ""));
+				return true;
+			}
+			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "error decoding token");
 		}
 		return true;
 	}

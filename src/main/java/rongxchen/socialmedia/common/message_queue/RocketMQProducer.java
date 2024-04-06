@@ -1,13 +1,16 @@
 package rongxchen.socialmedia.common.message_queue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.springframework.http.HttpStatus;
+import org.apache.rocketmq.spring.support.RocketMQHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
-import rongxchen.socialmedia.exceptions.HttpException;
+import rongxchen.socialmedia.utils.ObjectUtil;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author CHEN Rongxin
@@ -19,15 +22,33 @@ public class RocketMQProducer {
 	private RocketMQTemplate rocketMQTemplate;
 
 	@Resource
-	private ObjectMapper objectMapper;
+	private ObjectUtil objectUtil;
 
-	public <T> void sendMessage(String topic, T message) {
-		try {
-			String messageString = objectMapper.writeValueAsString(message);
-			rocketMQTemplate.convertAndSend(topic, messageString);
-		} catch (JsonProcessingException e) {
-			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to write message");
-		}
+	public <T> void sendMessage(String topic, T object) {
+		Message<T> message = MessageBuilder
+				.withPayload(object)
+				.setHeader("reconsume_times", 0)
+				.build();
+		rocketMQTemplate.convertAndSend(topic, message);
+	}
+
+	public <T> void sendMessage(String topic, List<T> objectList) {
+		rocketMQTemplate.convertAndSend(topic, objectUtil.writeObjectListAsString(objectList));
+	}
+
+}
+
+@Component
+class RocketMQSendCallback implements SendCallback {
+
+	@Override
+	public void onSuccess(SendResult sendResult) {
+		System.out.println("send success: " + sendResult);
+	}
+
+	@Override
+	public void onException(Throwable throwable) {
+		System.out.println("exception here: " + throwable);
 	}
 
 }

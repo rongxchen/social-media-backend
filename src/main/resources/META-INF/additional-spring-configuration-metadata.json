@@ -19,5 +19,10 @@
       "name": "frontend.url",
       "type": "java.lang.String",
       "description": "Description for frontend.url."
+    },
+    {
+      "name": "rocketmq.consumer.group",
+      "type": "java.lang.String",
+      "description": "Description for rocketmq.consumer.group."
     }
   ] }

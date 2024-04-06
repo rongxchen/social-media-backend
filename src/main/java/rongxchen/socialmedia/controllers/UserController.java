@@ -42,7 +42,7 @@ public class UserController {
 	}
 
 	@PostMapping("/login")
-	public Result<Object> login(@NotNull @RequestBody UserDTO userDTO) {
+	public Result<Map<String, Object>> login(@NotNull @RequestBody UserDTO userDTO) {
 		Map<String, Object> data = userService.login(userDTO);
 		return Result.ok(data);
 	}

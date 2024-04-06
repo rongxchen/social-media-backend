@@ -166,12 +166,9 @@ public class UserService {
 		String code = RandomCodeGenerator.generateVerificationCode();
 		redisRepository.setWithTimeLimit(RedisKey.VERIFICATION_CODE, email, code, 60 * 10);
 		// set message meta for mq
-		MessageMeta messageMeta = new MessageMeta();
-		messageMeta.setMessageType(MessageType.MAIL_VERIFICATION_CODE);
-		Map<String, Object> data = new HashMap<>();
-		data.put("email", email);
-		data.put("code", code);
-		messageMeta.setData(data);
+		MessageMeta messageMeta = new MessageMeta(MessageType.MAIL_VERIFICATION_CODE.getValue());
+		messageMeta.addString("email", email);
+		messageMeta.addString("code", code);
 		rocketMQProducer.sendMessage("azure-mail", messageMeta);
 	}
 
@@ -181,13 +178,10 @@ public class UserService {
 			throw new AccountException("no such user");
 		}
 		// set message meta for mq
-		MessageMeta messageMeta = new MessageMeta();
-		messageMeta.setMessageType(MessageType.MAIL_RESET_PASSWORD);
-		Map<String, Object> data = new HashMap<>();
-		data.put("email", email);
-		data.put("appId", user.getAppId());
-		data.put("username", user.getUsername());
-		messageMeta.setData(data);
+		MessageMeta messageMeta = new MessageMeta(MessageType.MAIL_RESET_PASSWORD.getValue());
+		messageMeta.addString("email", email);
+		messageMeta.addString("appId", user.getAppId());
+		messageMeta.addString("username", user.getUsername());
 		rocketMQProducer.sendMessage("azure-mail", messageMeta);
 	}
 
