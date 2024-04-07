@@ -76,6 +76,7 @@ public class UserService {
 		String password = EncryptionUtil.calculateSHA256(userDto.getPassword() + salt);
 		user.setSalt(salt);
 		user.setPassword(password);
+		user.setAvatar("");
 		user.setStatus(1);
 		user.setDeleted(0);
 		user.setRole(UserRole.USER.getRole());

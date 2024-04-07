@@ -1,6 +1,7 @@
 package rongxchen.socialmedia.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,8 @@ public class ObjectUtil {
 	public <T> List<T> readObjectList(String objectListString, Class<T> clazz) {
 		List<T> obj;
 		try {
-			obj = objectMapper.readValue(objectListString, objectMapper.getTypeFactory().constructCollectionType(List.class, clazz));
+			obj = objectMapper.readValue(objectListString, new TypeReference<List<T>>() {
+			});
 		} catch (JsonProcessingException e) {
 			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to parse object");
 		}

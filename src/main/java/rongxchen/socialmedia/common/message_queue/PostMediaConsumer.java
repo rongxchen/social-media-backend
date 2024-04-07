@@ -50,17 +50,14 @@ public class PostMediaConsumer implements RocketMQListener<String> {
 		topic = "post-media-delete",
 		consumerGroup = "${rocketmq.consumer.group}"
 )
-class PostMediaDeleteConsumer implements RocketMQListener<String> {
+class PostMediaDeleteConsumer implements RocketMQListener<MessageMeta> {
 
 	@Resource
 	private AzureBlobService azureBlobService;
 
-	@Resource
-	private ObjectUtil objectUtil;
-
 	@Override
-	public void onMessage(String message) {
-		MessageMeta messageMeta = objectUtil.readObject(message, MessageMeta.class);
+	public void onMessage(MessageMeta messageMeta) {
+		System.out.println(messageMeta);
 		if ("blob_post_img".equals(messageMeta.getMessageType())) {
 			List<String> imageList = messageMeta.get("imageList");
 			for (String image : imageList) {

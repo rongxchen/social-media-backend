@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import rongxchen.socialmedia.common.annotations.LoginToken;
 import rongxchen.socialmedia.models.Result;
-import rongxchen.socialmedia.models.entity.Post;
+import rongxchen.socialmedia.models.vo.PostVO;
 import rongxchen.socialmedia.service.PostService;
 
 import javax.annotation.Resource;
@@ -30,8 +30,8 @@ public class PostController {
 	}
 
 	@GetMapping
-	public Result<List<Post>> getPosts(@RequestParam("page") int page) {
-		List<Post> posts = postService.getPostByPage(page);
+	public Result<List<PostVO>> getPosts(@RequestParam("page") long page) {
+		List<PostVO> posts = postService.getPostByPage(page);
 		return Result.ok(posts);
 	}
 

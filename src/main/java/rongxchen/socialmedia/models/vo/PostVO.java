@@ -1,8 +1,6 @@
-package rongxchen.socialmedia.models.entity;
+package rongxchen.socialmedia.models.vo;
 
 import lombok.Data;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -13,11 +11,7 @@ import java.util.List;
  * @author CHEN Rongxin
  */
 @Data
-@Document(collection = "posts")
-public class Post {
-
-	@Id
-	private String id;
+public class PostVO {
 
 	@NotNull
 	private String postId;
@@ -36,6 +30,10 @@ public class Post {
 
 	@NotNull
 	private String authorId;
+
+	private String authorName;
+
+	private String authorAvatar;
 
 	private Integer likeCount;
 

@@ -1,7 +1,5 @@
 package rongxchen.socialmedia.service;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,7 +9,9 @@ import rongxchen.socialmedia.exceptions.HttpException;
 import rongxchen.socialmedia.models.dto.PostDTO;
 import rongxchen.socialmedia.models.entity.Post;
 import rongxchen.socialmedia.models.mq.MessageMeta;
+import rongxchen.socialmedia.models.vo.PostVO;
 import rongxchen.socialmedia.repository.PostRepository;
+import rongxchen.socialmedia.service.common.MyMongoService;
 import rongxchen.socialmedia.utils.ObjectUtil;
 import rongxchen.socialmedia.utils.UUIDGenerator;
 
@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author CHEN Rongxin
@@ -33,6 +34,9 @@ public class PostService {
 
 	@Resource
 	private PostRepository postRepository;
+
+	@Resource
+	private MyMongoService myMongoService;
 
 	@Resource
 	private RocketMQProducer rocketMQProducer;
@@ -51,6 +55,9 @@ public class PostService {
 		post.setTitle(postDTO.getTitle());
 		post.setContent(postDTO.getContent());
 		post.setAuthorId(appId);
+		post.setLikeCount(0);
+		post.setFavoriteCount(0);
+		post.setCommentCount(0);
 		post.setTagList(postDTO.getTags());
 		post.setCreateTime(LocalDate.now());
 		post.setLastModifiedTime(LocalDate.now());
@@ -78,11 +85,16 @@ public class PostService {
 		return postId;
 	}
 
-	public List<Post> getPostByPage(int page) {
+	public List<PostVO> getPostByPage(long page) {
 		int defaultSize = 20;
-		PageRequest pageRequest = PageRequest.of(page-1, defaultSize);
-		Page<Post> posts = postRepository.findAll(pageRequest);
-		return posts.getContent();
+		return myMongoService
+				.lookup("users", "appId", "authorId", "userInfo")
+				.unwind("userInfo")
+				.project("postId", "title", "content", "imageList", "tagList", "authorId",
+						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
+						"likeCount", "favoriteCount", "commentCount", "createTime", "updateTime")
+				.byPage(page, defaultSize)
+				.fetchResult("posts", PostVO.class);
 	}
 
 	public void deletePost(String postId, String appId) {
@@ -90,9 +102,11 @@ public class PostService {
 		if (!post.getAuthorId().equals(appId)) {
 			throw new HttpException(HttpStatus.FORBIDDEN, "not  authorized to delete this post");
 		}
-		List<String> blobNames = post.getImageList();
+		List<String> blobNames = post.getImageList()
+				.stream().map(x -> x.replace(BLOB_URL_PREFIX + "/", ""))
+				.collect(Collectors.toList());
 		MessageMeta messageMeta = new MessageMeta(MessageType.BLOB_POST_IMG.getValue());
-		messageMeta.add("blobNames", blobNames);
+		messageMeta.add("imageList", blobNames);
 		rocketMQProducer.sendMessage("post-media-delete", messageMeta);
 		postRepository.delete(post);
 	}

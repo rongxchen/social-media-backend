@@ -3,34 +3,39 @@ package rongxchen.socialmedia.common.message_queue;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.stereotype.Component;
+import rongxchen.socialmedia.common.enums.RedisKey;
 import rongxchen.socialmedia.models.mq.MessageMeta;
+import rongxchen.socialmedia.repository.RedisRepository;
 import rongxchen.socialmedia.service.azure.AzureMailService;
-import rongxchen.socialmedia.utils.ObjectUtil;
 
 import javax.annotation.Resource;
 
 /**
  * @author CHEN Rongxin
  */
-@Component
+//@Component
 @RocketMQMessageListener(
 		topic = "azure-mail",
-		consumerGroup = "${rocketmq.consumer.group}")
-public class AzureMailConsumer implements RocketMQListener<String> {
+		consumerGroup = "${rocketmq.consumer.group}"
+)
+public class AzureMailConsumer implements RocketMQListener<MessageMeta> {
 
 	@Resource
 	private AzureMailService azureMailService;
 
 	@Resource
-	private ObjectUtil objectUtil;
+	private RedisRepository redisRepository;
 
 	@Override
-	public void onMessage(String message) {
-		MessageMeta messageMeta = objectUtil.readObject(message, MessageMeta.class);
+	public void onMessage(MessageMeta messageMeta) {
 		System.out.println(messageMeta);
 		switch (messageMeta.getMessageType()) {
 			case "mail_verification_code": {
 				String email = messageMeta.getString("email");
+				String s = redisRepository.get(RedisKey.VERIFICATION_CODE, email);
+				if (s != null) {
+					return;
+				}
 				String code = messageMeta.getString("code");
 				azureMailService.sendVerificationCode(email, code);
 				break;
