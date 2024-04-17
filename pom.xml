@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.5</version>
+        <version>2.7.16</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -15,6 +15,7 @@
 
     <properties>
         <java.version>8</java.version>
+        <maven.compiler.version>8</maven.compiler.version>
         <!--stable version of azure in springboot2-->
         <spring-cloud-azure.version>4.16.0</spring-cloud-azure.version>
     </properties>

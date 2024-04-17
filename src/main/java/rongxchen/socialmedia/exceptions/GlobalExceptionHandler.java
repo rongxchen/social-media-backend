@@ -15,7 +15,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(RuntimeException.class)
 	public Result<String> handleException(RuntimeException exception) {
-		return Result.fail(exception.getMessage());
+		return Result.error(exception.getMessage());
 	}
 
 	@ExceptionHandler(HttpException.class)
@@ -28,7 +28,7 @@ public class GlobalExceptionHandler {
 				return new Result<>(HttpStatus.UNAUTHORIZED.value(), null, exception.getMessage());
 			}
 			default: {
-				return Result.fail(exception.getMessage());
+				return Result.error(exception.getMessage());
 			}
 		}
 	}
@@ -40,12 +40,12 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(MissingServletRequestParameterException.class)
 	public Result<String> handleMissingServletRequestParameterException(MissingServletRequestParameterException exception) {
-		return Result.fail(exception.getMessage());
+		return Result.error(exception.getMessage());
 	}
 
 	@ExceptionHandler(Exception.class)
 	public Result<String> handleException(Exception exception) {
-		return Result.fail(exception.getMessage());
+		return Result.error(exception.getMessage());
 	}
 
 }

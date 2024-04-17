@@ -1,19 +1,17 @@
-package rongxchen.socialmedia.common.enums;
+package rongxchen.socialmedia.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.io.Serializable;
 
 /**
  * @author CHEN Rongxin
  */
 @AllArgsConstructor
 @Getter
-public enum RedisKey implements Serializable {
+public enum RedisKey implements CodeEnhancer {
 
 	VERIFICATION_CODE("verification-code:");
 
-	private final String key;
+	private final String code;
 
 }

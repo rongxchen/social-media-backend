@@ -1,5 +1,6 @@
 package rongxchen.socialmedia.controllers;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import rongxchen.socialmedia.common.annotations.LoginToken;
 import rongxchen.socialmedia.models.Result;
@@ -8,7 +9,6 @@ import rongxchen.socialmedia.models.vo.UserVO;
 import rongxchen.socialmedia.service.UserService;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Map;
 
@@ -23,49 +23,49 @@ public class UserController {
 	private UserService userService;
 
 	@PostMapping("/send-verification-code")
-	public Result<Boolean> sendVerificationCode(@NotNull @RequestBody UserDTO userDTO) {
+	public Result<Boolean> sendVerificationCode(@RequestBody UserDTO userDTO) {
 		userService.sendVerificationCode(userDTO.getEmail());
-		return Result.ok(true, "verification code sent");
+		return Result.success(true, "verification code sent");
 	}
 
 	@PostMapping("/send-forgot-password")
-	public Result<Boolean> sendForgotPassword(@NotNull @RequestBody UserDTO userDTO) {
+	public Result<Boolean> sendForgotPassword(@RequestBody UserDTO userDTO) {
 		userService.sendResetPassword(userDTO.getEmail());
-		return Result.ok(true, "email sent, check your inbox");
+		return Result.success(true, "email sent, check your inbox");
 	}
 
 	@PostMapping("/register")
-	public Result<Boolean> register(@NotNull @RequestBody UserDTO userDTO,
-									@NotNull @RequestParam @Size(min = 6, max = 6) String code) {
+	public Result<Boolean> register(@RequestBody @Validated UserDTO userDTO,
+									@RequestParam @Size(min = 6, max = 6) String code) {
 		userService.signUp(userDTO, code);
-		return Result.ok(true);
+		return Result.success(true);
 	}
 
 	@PostMapping("/login")
-	public Result<Map<String, Object>> login(@NotNull @RequestBody UserDTO userDTO) {
+	public Result<Map<String, Object>> login(@RequestBody @Validated UserDTO userDTO) {
 		Map<String, Object> data = userService.login(userDTO);
-		return Result.ok(data);
+		return Result.success(data);
 	}
 
 	@PutMapping
 	@LoginToken
 	public Result<Boolean> updateUserInfo(@RequestAttribute String appId,
-										  @NotNull @RequestBody UserVO userVO) {
+										  @RequestBody @Validated UserVO userVO) {
 		userService.updateUser(appId, userVO);
-		return Result.ok(true);
+		return Result.success(true);
 	}
 
 	@DeleteMapping
 	@LoginToken
 	public Result<Boolean> deleteUser(@RequestAttribute String appId) {
 		userService.deleteUser(appId);
-		return Result.ok(true);
+		return Result.success(true);
 	}
 
 	@GetMapping("/refresh-token")
 	public Result<Map<String, String>> refreshToken(@RequestHeader("refresh-token") String refreshToken) {
 		Map<String, String> map = userService.refreshToken(refreshToken);
-		return Result.ok(map);
+		return Result.success(map);
 	}
 
 }

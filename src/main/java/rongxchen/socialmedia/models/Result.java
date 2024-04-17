@@ -17,24 +17,16 @@ public class Result<T> {
 
 	private String message;
 
-	public static <T> Result<T> ok(T data, String message) {
+	public static <T> Result<T> success(T data, String message) {
 		return new Result<>(StatusCode.OK.getCode(), data, message);
 	}
 
-	public static <T> Result<T> ok(T data) {
-		return Result.ok(data, "success");
+	public static <T> Result<T> success(T data) {
+		return Result.success(data, "success");
 	}
 
-	public static <T> Result<T> ok() {
-		return Result.ok(null, "success");
-	}
-
-	public static <T> Result<T> fail(String message) {
+	public static <T> Result<T> error(String message) {
 		return new Result<>(StatusCode.FAIL.getCode(), null, message);
-	}
-
-	public static <T> Result<T> fail() {
-		return Result.fail("failed");
 	}
 
 }

@@ -17,10 +17,10 @@ public class UserDTO {
 	@NotNull
 	private String email;
 
-	@Size(max = 50, min = 1)
+	@Size(max = 100, min = 1)
 	private String username;
 
-	@Size(max = 30, min = 8)
+	@Size(max = 512, min = 8)
 	@NotNull
 	private String password;
 

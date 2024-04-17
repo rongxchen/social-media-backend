@@ -1,13 +1,14 @@
 package rongxchen.socialmedia.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import rongxchen.socialmedia.exceptions.HttpException;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,55 +20,38 @@ public class ObjectUtil {
 	@Resource
 	private ObjectMapper objectMapper;
 
-	public <T> T readObject(String objectString, Class<T> clazz) {
-		T obj;
+	public <T> T read(String objectString, Class<T> clazz) {
 		try {
-			obj = objectMapper.readValue(objectString, clazz);
+			return objectMapper.readValue(objectString, clazz);
 		} catch (JsonProcessingException e) {
 			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to parse object");
 		}
-		return obj;
 	}
 
-	public <T> List<T> readObjectList(String objectListString, Class<T> clazz) {
-		List<T> obj;
+	public <T> List<T> readList(String objectListString, Class<T> clazz) {
 		try {
-			obj = objectMapper.readValue(objectListString, new TypeReference<List<T>>() {
-			});
+			CollectionType collectionType = objectMapper.getTypeFactory()
+					.constructCollectionType(ArrayList.class, clazz);
+			return objectMapper.readValue(objectListString, collectionType);
 		} catch (JsonProcessingException e) {
 			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to parse object");
 		}
-		return obj;
 	}
 
-	public <T> String writeObjectAsString(T object) {
-		String objectString;
+	public <T> String write(T object) {
 		try {
-			objectString = objectMapper.writeValueAsString(object);
+			return objectMapper.writeValueAsString(object);
 		} catch (JsonProcessingException e) {
 			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to write object");
 		}
-		return objectString;
 	}
 
-	public <T> String writeObjectListAsString(List<T> object) {
-		String objectString;
+	public <T> String writeList(List<T> object) {
 		try {
-			objectString = objectMapper.writeValueAsString(object);
+			return objectMapper.writeValueAsString(object);
 		} catch (JsonProcessingException e) {
 			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to write object");
 		}
-		return objectString;
-	}
-
-	public  <T> byte[] writeObjectAsBytes(T object) {
-		byte[] objectString;
-		try {
-			objectString = objectMapper.writeValueAsBytes(object);
-		} catch (JsonProcessingException e) {
-			throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to write object");
-		}
-		return objectString;
 	}
 
 }

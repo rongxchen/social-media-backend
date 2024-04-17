@@ -6,7 +6,7 @@ import lombok.Data;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.FileCopyUtils;
-import rongxchen.socialmedia.common.enums.UserRole;
+import rongxchen.socialmedia.enums.UserRole;
 import rongxchen.socialmedia.exceptions.HttpException;
 import rongxchen.socialmedia.utils.JwtUtil;
 
@@ -63,7 +63,7 @@ public class AzureMailService {
 		String subject = "Reset Password";
 		Map<String, String> claims = new HashMap<>();
 		claims.put("appId", appId);
-		claims.put("role", UserRole.USER.getRole());
+		claims.put("role", UserRole.USER.getCode());
 		String token = JwtUtil.generateToken(claims, 30);
 		String url = frontendUrl + "/reset-password?token=" + token;
 		String bodyHtml = readHTMLFromFile("mails/reset_password.html");

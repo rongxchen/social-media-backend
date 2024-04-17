@@ -3,15 +3,14 @@ package rongxchen.socialmedia.service;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rongxchen.socialmedia.common.enums.MessageType;
-import rongxchen.socialmedia.common.enums.RedisKey;
-import rongxchen.socialmedia.common.enums.UserRole;
-import rongxchen.socialmedia.common.message_queue.RocketMQProducer;
+import rongxchen.socialmedia.enums.RedisKey;
+import rongxchen.socialmedia.enums.UserRole;
+import rongxchen.socialmedia.message_queue.RocketMQProducer;
 import rongxchen.socialmedia.exceptions.AccountException;
 import rongxchen.socialmedia.exceptions.HttpException;
 import rongxchen.socialmedia.models.dto.UserDTO;
 import rongxchen.socialmedia.models.entity.User;
-import rongxchen.socialmedia.models.mq.MessageMeta;
+import rongxchen.socialmedia.models.mq.MQBody;
 import rongxchen.socialmedia.models.vo.UserVO;
 import rongxchen.socialmedia.repository.RedisRepository;
 import rongxchen.socialmedia.repository.UserRepository;
@@ -54,7 +53,7 @@ public class UserService {
 			user.setAppId(findUser.getAppId());
 		}
 		// check if code is correct
-		String findCode = redisRepository.get(RedisKey.VERIFICATION_CODE, userDto.getEmail());
+		String findCode = redisRepository.get(RedisKey.VERIFICATION_CODE.getCode(), userDto.getEmail());
 		if (findCode == null) {
 			throw new AccountException("code expired");
 		}
@@ -79,7 +78,7 @@ public class UserService {
 		user.setAvatar("");
 		user.setStatus(1);
 		user.setDeleted(0);
-		user.setRole(UserRole.USER.getRole());
+		user.setRole(UserRole.USER.getCode());
 		user.setCreateTime(LocalDate.now());
 		user.setUpdateTime(LocalDate.now());
 		userRepository.save(user);
@@ -165,12 +164,12 @@ public class UserService {
 		}
 		// generate verification code and store in redis
 		String code = RandomCodeGenerator.generateVerificationCode();
-		redisRepository.setWithTimeLimit(RedisKey.VERIFICATION_CODE, email, code, 60 * 10);
+		redisRepository.setItem(RedisKey.VERIFICATION_CODE.getCode(), email, code, 60 * 10);
 		// set message meta for mq
-		MessageMeta messageMeta = new MessageMeta(MessageType.MAIL_VERIFICATION_CODE.getValue());
-		messageMeta.addString("email", email);
-		messageMeta.addString("code", code);
-		rocketMQProducer.sendMessage("azure-mail", messageMeta);
+		MQBody mqBody = new MQBody("mail_verification_code");
+		mqBody.add("email", email);
+		mqBody.add("code", code);
+		rocketMQProducer.sendMessage("azure-mail", mqBody);
 	}
 
 	public void sendResetPassword(String email) {
@@ -179,11 +178,11 @@ public class UserService {
 			throw new AccountException("no such user");
 		}
 		// set message meta for mq
-		MessageMeta messageMeta = new MessageMeta(MessageType.MAIL_RESET_PASSWORD.getValue());
-		messageMeta.addString("email", email);
-		messageMeta.addString("appId", user.getAppId());
-		messageMeta.addString("username", user.getUsername());
-		rocketMQProducer.sendMessage("azure-mail", messageMeta);
+		MQBody mqBody = new MQBody("mail_reset_password");
+		mqBody.add("email", email);
+		mqBody.add("appId", user.getAppId());
+		mqBody.add("username", user.getUsername());
+		rocketMQProducer.sendMessage("azure-mail", mqBody);
 	}
 
 	public Map<String, String> refreshToken(String refreshToken) {

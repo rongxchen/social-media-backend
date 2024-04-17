@@ -97,4 +97,9 @@ public class MyMongoService {
 		return aggregateResults.getMappedResults();
 	}
 
+	public <T> T fetchOne(String primaryCollection, Class<T> clazz) {
+		List<T> result = fetchResult(primaryCollection, clazz);
+		return result.isEmpty() ? null : result.get(0);
+	}
+
 }

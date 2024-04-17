@@ -1,21 +1,19 @@
-package rongxchen.socialmedia.common.enums;
+package rongxchen.socialmedia.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.io.Serializable;
 
 /**
  * @author CHEN Rongxin
  */
 @Getter
 @AllArgsConstructor
-public enum UserRole implements Serializable {
+public enum UserRole implements CodeEnhancer {
 
 	ADMIN("admin"),
 
 	USER("user");
 
-	private final String role;
+	private final String code;
 
 }

@@ -1,9 +1,10 @@
-package rongxchen.socialmedia.common.message_queue;
+package rongxchen.socialmedia.message_queue;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.stereotype.Component;
-import rongxchen.socialmedia.models.mq.MessageMeta;
+import rongxchen.socialmedia.models.mq.MQBody;
 import rongxchen.socialmedia.service.azure.AzureBlobService;
 import rongxchen.socialmedia.utils.ObjectUtil;
 
@@ -20,6 +21,7 @@ import java.util.List;
 		topic = "post-media-upload",
 		consumerGroup = "${rocketmq.consumer.group}"
 )
+@Slf4j
 public class PostMediaConsumer implements RocketMQListener<String> {
 
 	@Resource
@@ -30,13 +32,13 @@ public class PostMediaConsumer implements RocketMQListener<String> {
 
 	@Override
 	public void onMessage(String message) {
-		List<MessageMeta> messageMetaList = objectUtil.readObjectList(message, MessageMeta.class);
-		for (MessageMeta messageMeta : messageMetaList) {
-			if ("blob_post_img".equals(messageMeta.getMessageType())) {
-				String blobName = messageMeta.getString("blobName");
-				System.out.println(blobName);
-				String contentType = messageMeta.getString("contentType");
-				InputStream fileRaw = new ByteArrayInputStream(messageMeta.getBytes("fileBytes"));
+		List<MQBody> mqBodyList = objectUtil.readList(message, MQBody.class);
+		for (MQBody mqBody : mqBodyList) {
+			if ("blob_post_img".equals(mqBody.getMessageType())) {
+				String blobName = mqBody.get("blobName");
+				log.info(blobName);
+				String contentType = mqBody.get("contentType");
+				InputStream fileRaw = new ByteArrayInputStream(mqBody.getBytes("fileBytes"));
 				azureBlobService.uploadFile("media", blobName, fileRaw, contentType);
 				break;
 			}
@@ -50,16 +52,21 @@ public class PostMediaConsumer implements RocketMQListener<String> {
 		topic = "post-media-delete",
 		consumerGroup = "${rocketmq.consumer.group}"
 )
-class PostMediaDeleteConsumer implements RocketMQListener<MessageMeta> {
+@Slf4j
+class PostMediaDeleteConsumer implements RocketMQListener<String> {
 
 	@Resource
 	private AzureBlobService azureBlobService;
 
+	@Resource
+	private ObjectUtil objectUtil;
+
 	@Override
-	public void onMessage(MessageMeta messageMeta) {
-		System.out.println(messageMeta);
-		if ("blob_post_img".equals(messageMeta.getMessageType())) {
-			List<String> imageList = messageMeta.get("imageList");
+	public void onMessage(String message) {
+		MQBody mqBody = objectUtil.read(message, MQBody.class);
+		log.info(mqBody.toString());
+		if ("blob_post_img".equals(mqBody.getMessageType())) {
+			List<String> imageList = mqBody.get("imageList");
 			for (String image : imageList) {
 				azureBlobService.removeFile("media", image);
 			}

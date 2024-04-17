@@ -6,8 +6,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 /**
  * @author CHEN Rongxin
@@ -15,42 +14,25 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageMeta implements Serializable {
+public class MQBody implements Serializable {
 
 	private String messageType;
 
-	private Map<String, Object> data;
+	private LinkedHashMap<String, Object> data = new LinkedHashMap<>();
 
-	public MessageMeta(String messageType) {
+	public MQBody(String messageType) {
 		this.messageType = messageType;
-		data = new HashMap<>();
 	}
 
 	public <T> T get(String key) {
-		return (T) data.getOrDefault(key, null);
-	}
-
-	public int getInt(String key) {
-		return (int) data.getOrDefault(key, "");
-	}
-
-	public String getString(String key) {
-		return data.getOrDefault(key, "").toString();
+		return (T) data.getOrDefault(key, "");
 	}
 
 	public byte[] getBytes(String key) {
 		return Base64.decodeBase64(data.getOrDefault(key, "").toString());
 	}
 
-	public void add(String key, Object value) {
-		data.put(key, value);
-	}
-
-	public void addInt(String key, int value) {
-		data.put(key, value);
-	}
-
-	public void addString(String key, String value) {
+	public <T> void add(String key, T value) {
 		data.put(key, value);
 	}
 

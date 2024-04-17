@@ -1,14 +1,14 @@
 package rongxchen.socialmedia.service;
 
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import rongxchen.socialmedia.common.enums.MessageType;
-import rongxchen.socialmedia.common.message_queue.RocketMQProducer;
+import rongxchen.socialmedia.message_queue.RocketMQProducer;
 import rongxchen.socialmedia.exceptions.HttpException;
 import rongxchen.socialmedia.models.dto.PostDTO;
 import rongxchen.socialmedia.models.entity.Post;
-import rongxchen.socialmedia.models.mq.MessageMeta;
+import rongxchen.socialmedia.models.mq.MQBody;
 import rongxchen.socialmedia.models.vo.PostVO;
 import rongxchen.socialmedia.repository.PostRepository;
 import rongxchen.socialmedia.service.common.MyMongoService;
@@ -44,7 +44,7 @@ public class PostService {
 	private final String BLOB_URL_PREFIX = "https://mysocialmediastorage.blob.core.windows.net/media";
 
 	public String publishPost(MultipartFile[] files, String postJsonString, String appId) {
-		PostDTO postDTO = objectUtil.readObject(postJsonString, PostDTO.class);
+		PostDTO postDTO = objectUtil.read(postJsonString, PostDTO.class);
 		String postId = UUIDGenerator.generate("post");
 		while (postRepository.getByPostId(postId) != null) {
 			postId = UUIDGenerator.generate("post");
@@ -62,24 +62,24 @@ public class PostService {
 		post.setCreateTime(LocalDate.now());
 		post.setLastModifiedTime(LocalDate.now());
 		List<String> imageList = new ArrayList<>();
-		List<MessageMeta> messageMetaList = new ArrayList<>();
+		List<MQBody> mqBodyList = new ArrayList<>();
 		// send message to azure blob service to upload media files
 		for (MultipartFile file : files) {
 			String suffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
 			String blobName = postId + "/" + UUIDGenerator.generate(true) + suffix;
 			String imageUrl = BLOB_URL_PREFIX + "/" + blobName;
 			imageList.add(imageUrl);
-			MessageMeta messageMeta = new MessageMeta(MessageType.BLOB_POST_IMG.getValue());
-			messageMeta.addString("blobName", blobName);
-			messageMeta.addString("contentType", file.getContentType());
+			MQBody mqBody = new MQBody("blob_post_img");
+			mqBody.add("blobName", blobName);
+			mqBody.add("contentType", file.getContentType());
 			try {
-				messageMeta.addBytes("fileBytes", file.getBytes());
+				mqBody.addBytes("fileBytes", file.getBytes());
 			} catch (IOException e) {
 				throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to read file bytes");
 			}
-			messageMetaList.add(messageMeta);
+			mqBodyList.add(mqBody);
 		}
-		rocketMQProducer.sendMessage("post-media-upload", messageMetaList);
+		rocketMQProducer.sendMessage("post-media-upload", mqBodyList);
 		post.setImageList(imageList);
 		postRepository.save(post);
 		return postId;
@@ -90,11 +90,22 @@ public class PostService {
 		return myMongoService
 				.lookup("users", "appId", "authorId", "userInfo")
 				.unwind("userInfo")
+				.project("postId", "title", "imageList", "authorId",
+						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
+						"likeCount")
+				.byPage(page, defaultSize)
+				.fetchResult("posts", PostVO.class);
+	}
+
+	public PostVO getPostByPostId(String postId) {
+		return myMongoService
+				.lookup("users", "appId", "authorId", "userInfo")
+				.unwind("userInfo")
+				.match(Criteria.where("postId").is(postId))
 				.project("postId", "title", "content", "imageList", "tagList", "authorId",
 						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
 						"likeCount", "favoriteCount", "commentCount", "createTime", "updateTime")
-				.byPage(page, defaultSize)
-				.fetchResult("posts", PostVO.class);
+				.fetchOne("posts", PostVO.class);
 	}
 
 	public void deletePost(String postId, String appId) {
@@ -105,9 +116,9 @@ public class PostService {
 		List<String> blobNames = post.getImageList()
 				.stream().map(x -> x.replace(BLOB_URL_PREFIX + "/", ""))
 				.collect(Collectors.toList());
-		MessageMeta messageMeta = new MessageMeta(MessageType.BLOB_POST_IMG.getValue());
-		messageMeta.add("imageList", blobNames);
-		rocketMQProducer.sendMessage("post-media-delete", messageMeta);
+		MQBody mqBody = new MQBody("blob_post_img");
+		mqBody.add("imageList", blobNames);
+		rocketMQProducer.sendMessage("post-media-delete", mqBody);
 		postRepository.delete(post);
 	}
 
