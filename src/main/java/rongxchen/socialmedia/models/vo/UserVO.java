@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Data
 public class UserVO {
 
-	@Size(max = 50, min = 8)
+	@Size(max = 100, min = 1)
 	private String username;
 
 	@Email
@@ -27,7 +27,7 @@ public class UserVO {
 
 	private String avatar;
 
-	private LocalDate birthday;
+	private String birthday;
 
 	private LocalDate createTime;
 

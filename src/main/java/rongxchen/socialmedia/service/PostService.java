@@ -7,9 +7,11 @@ import org.springframework.web.multipart.MultipartFile;
 import rongxchen.socialmedia.message_queue.RocketMQProducer;
 import rongxchen.socialmedia.exceptions.HttpException;
 import rongxchen.socialmedia.models.dto.PostDTO;
+import rongxchen.socialmedia.models.entity.Likes;
 import rongxchen.socialmedia.models.entity.Post;
 import rongxchen.socialmedia.models.mq.MQBody;
 import rongxchen.socialmedia.models.vo.PostVO;
+import rongxchen.socialmedia.repository.LikesRepository;
 import rongxchen.socialmedia.repository.PostRepository;
 import rongxchen.socialmedia.service.common.MyMongoService;
 import rongxchen.socialmedia.utils.ObjectUtil;
@@ -18,9 +20,7 @@ import rongxchen.socialmedia.utils.UUIDGenerator;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,6 +34,9 @@ public class PostService {
 
 	@Resource
 	private PostRepository postRepository;
+
+	@Resource
+	private LikesRepository likesRepository;
 
 	@Resource
 	private MyMongoService myMongoService;
@@ -90,9 +93,9 @@ public class PostService {
 		return myMongoService
 				.lookup("users", "appId", "authorId", "userInfo")
 				.unwind("userInfo")
-				.project("postId", "title", "imageList", "authorId",
+				.project("postId", "title", "content", "imageList", "tagList", "authorId",
 						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
-						"likeCount")
+						"likeCount", "favoriteCount", "commentCount", "createTime", "updateTime")
 				.byPage(page, defaultSize)
 				.fetchResult("posts", PostVO.class);
 	}
@@ -106,6 +109,39 @@ public class PostService {
 						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
 						"likeCount", "favoriteCount", "commentCount", "createTime", "updateTime")
 				.fetchOne("posts", PostVO.class);
+	}
+
+	public boolean likePost(String postId, String action, String userId) {
+		Post post = postRepository.getByPostId(postId);
+		if (post == null) {
+			throw new IllegalArgumentException("post not exist");
+		}
+		if ("like".equals(action)) {
+			post.setLikeCount(post.getLikeCount()+1);
+			postRepository.save(post);
+			Likes likes = new Likes();
+			likes.setLikedItemId(postId);
+			likes.setUserId(userId);
+			likes.setType("post");
+			likesRepository.save(likes);
+		} else if ("dislike".equals(action)) {
+			post.setLikeCount(post.getLikeCount()-1);
+			postRepository.save(post);
+			Likes likes = likesRepository.getByItemId(postId, userId);
+			likesRepository.delete(likes);
+		} else {
+			return false;
+		}
+		return true;
+	}
+
+	public Map<String, Integer> getLikesRecord(String userId) {
+		List<Likes> likesList = likesRepository.getByUserId(userId);
+		Map<String, Integer> record = new HashMap<>();
+		for (Likes likes : likesList) {
+			record.put(likes.getLikedItemId(), 1);
+		}
+		return record;
 	}
 
 	public void deletePost(String postId, String appId) {

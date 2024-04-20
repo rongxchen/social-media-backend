@@ -3,14 +3,13 @@ package rongxchen.socialmedia.controllers;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import rongxchen.socialmedia.common.annotations.LoginToken;
-import rongxchen.socialmedia.message_queue.RocketMQProducer;
 import rongxchen.socialmedia.models.Result;
-import rongxchen.socialmedia.models.mq.MQBody;
 import rongxchen.socialmedia.models.vo.PostVO;
 import rongxchen.socialmedia.service.PostService;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author CHEN Rongxin
@@ -41,6 +40,20 @@ public class PostController {
 	public Result<PostVO> getPost(@PathVariable("postId") String postId) {
 		PostVO postVO = postService.getPostByPostId(postId);
 		return Result.success(postVO);
+	}
+
+	@PostMapping("/like-post")
+	public Result<Boolean> likePost(@RequestParam("postId") String postId,
+									@RequestParam("action") String action,
+									@RequestAttribute String appId) {
+		boolean success = postService.likePost(postId, action, appId);
+		return Result.success(success);
+	}
+
+	@GetMapping("/likes-record")
+	public Result<Map<String, Integer>> getLikesRecord(@RequestAttribute String appId) {
+		Map<String, Integer> likesRecord = postService.getLikesRecord(appId);
+		return Result.success(likesRecord);
 	}
 
 	@DeleteMapping

@@ -21,6 +21,7 @@ import rongxchen.socialmedia.utils.UUIDGenerator;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
@@ -104,7 +105,7 @@ public class UserService {
 		userVo.setUsername(user.getUsername());
 		userVo.setAppId(user.getAppId());
 		userVo.setDescription(user.getDescription());
-		userVo.setBirthday(user.getBirthday());
+		userVo.setBirthday(user.getBirthday().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 		userVo.setEmail(user.getEmail());
 		userVo.setSex(user.getSex());
 		userVo.setAvatar(user.getAvatar());
@@ -139,7 +140,7 @@ public class UserService {
 			user.setUsername(userVO.getUsername());
 			user.setUpdateTime(LocalDate.now());
 		}
-		user.setBirthday(userVO.getBirthday());
+		user.setBirthday(LocalDate.parse(userVO.getBirthday(), DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 		user.setSex(userVO.getSex());
 		user.setDescription(userVO.getDescription());
 		userRepository.save(user);
