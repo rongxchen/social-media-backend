@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -34,7 +35,7 @@ public class MyMongoService {
 	public MyMongoService project(String...args) {
 		ProjectionOperation projectionOperation = Aggregation.project().andExclude("_id");
 		for (String arg : args) {
-			String[] asExp = arg.split("as");
+			String[] asExp = arg.split(" as ");
 			if (asExp.length == 2) {
 				projectionOperation = projectionOperation.and(asExp[0].trim()).as(asExp[1].trim());
 			} else {

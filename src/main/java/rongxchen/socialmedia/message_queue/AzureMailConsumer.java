@@ -13,7 +13,7 @@ import javax.annotation.Resource;
 /**
  * @author CHEN Rongxin
  */
-@Component
+//@Component
 @RocketMQMessageListener(
 		topic = "azure-mail",
 		consumerGroup = "${rocketmq.consumer.group}"

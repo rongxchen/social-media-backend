@@ -39,12 +39,12 @@ azure:
 frontend:
   url: "http://localhost:3000"
 
-rocketmq:
-  name-server: "localhost:9876"
-  producer:
-    group: "social-media-producer"
-    send-message-timeout: 3000
-    retry-times-when-send-failed: 0
-    retry-times-when-send-async-failed: 0
-  consumer:
-    group: "social-media-consumer"
+#rocketmq:
+#  name-server: "localhost:9876"
+#  producer:
+#    group: "my-social-producer"
+#    send-message-timeout: 3000
+#    retry-times-when-send-failed: 0
+#    retry-times-when-send-async-failed: 0
+#  consumer:
+#    group: "my-social-consumer"

@@ -14,6 +14,7 @@ import rongxchen.socialmedia.models.mq.MQBody;
 import rongxchen.socialmedia.models.vo.UserVO;
 import rongxchen.socialmedia.repository.RedisRepository;
 import rongxchen.socialmedia.repository.UserRepository;
+import rongxchen.socialmedia.service.azure.AzureMailService;
 import rongxchen.socialmedia.utils.EncryptionUtil;
 import rongxchen.socialmedia.utils.JwtUtil;
 import rongxchen.socialmedia.utils.RandomCodeGenerator;
@@ -37,10 +38,14 @@ public class UserService {
 	private UserRepository userRepository;
 
 	@Resource
-	RedisRepository redisRepository;
+	private RedisRepository redisRepository;
+
+	// TODO
+//	@Resource
+//	RocketMQProducer rocketMQProducer;
 
 	@Resource
-	RocketMQProducer rocketMQProducer;
+	private AzureMailService azureMailService;
 
 	public void signUp(UserDTO userDto, String code) {
 		// find if user has registered before
@@ -167,10 +172,13 @@ public class UserService {
 		String code = RandomCodeGenerator.generateVerificationCode();
 		redisRepository.setItem(RedisKey.VERIFICATION_CODE.getCode(), email, code, 60 * 10);
 		// set message meta for mq
-		MQBody mqBody = new MQBody("mail_verification_code");
-		mqBody.add("email", email);
-		mqBody.add("code", code);
-		rocketMQProducer.sendMessage("azure-mail", mqBody);
+		// TODO
+//		MQBody mqBody = new MQBody("mail_verification_code");
+//		mqBody.add("email", email);
+//		mqBody.add("code", code);
+//		rocketMQProducer.sendMessage("azure-mail", mqBody);
+
+		azureMailService.sendVerificationCode(email, code);
 	}
 
 	public void sendResetPassword(String email) {
@@ -179,11 +187,14 @@ public class UserService {
 			throw new AccountException("no such user");
 		}
 		// set message meta for mq
-		MQBody mqBody = new MQBody("mail_reset_password");
-		mqBody.add("email", email);
-		mqBody.add("appId", user.getAppId());
-		mqBody.add("username", user.getUsername());
-		rocketMQProducer.sendMessage("azure-mail", mqBody);
+		// TODO
+//		MQBody mqBody = new MQBody("mail_reset_password");
+//		mqBody.add("email", email);
+//		mqBody.add("appId", user.getAppId());
+//		mqBody.add("username", user.getUsername());
+//		rocketMQProducer.sendMessage("azure-mail", mqBody);
+
+		azureMailService.sendResetPassword(user.getAppId(), user.getUsername(), email);
 	}
 
 	public Map<String, String> refreshToken(String refreshToken) {

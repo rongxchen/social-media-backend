@@ -46,14 +46,22 @@ public class PostController {
 	public Result<Boolean> likePost(@RequestParam("postId") String postId,
 									@RequestParam("action") String action,
 									@RequestAttribute String appId) {
-		boolean success = postService.likePost(postId, action, appId);
+		boolean success = postService.collectPost(postId, action, "likes", appId);
 		return Result.success(success);
 	}
 
-	@GetMapping("/likes-record")
-	public Result<Map<String, Integer>> getLikesRecord(@RequestAttribute String appId) {
-		Map<String, Integer> likesRecord = postService.getLikesRecord(appId);
-		return Result.success(likesRecord);
+	@PostMapping("/favorite-post")
+	public Result<Boolean> favoritePost(@RequestParam("postId") String postId,
+										@RequestParam("action") String action,
+										@RequestAttribute String appId) {
+		boolean success = postService.collectPost(postId, action, "favorites", appId);
+		return Result.success(success);
+	}
+
+	@GetMapping("/record")
+	public Result<Map<String, Map<String, Integer>>> getLikesRecord(@RequestAttribute String appId) {
+		Map<String, Map<String, Integer>> record = postService.getCollectionRecord(appId);
+		return Result.success(record);
 	}
 
 	@DeleteMapping

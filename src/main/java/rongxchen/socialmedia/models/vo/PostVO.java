@@ -41,7 +41,6 @@ public class PostVO {
 
 	private Integer commentCount;
 
-	@NotNull
 	private LocalDate createTime;
 
 	private LocalDate lastModifiedTime;

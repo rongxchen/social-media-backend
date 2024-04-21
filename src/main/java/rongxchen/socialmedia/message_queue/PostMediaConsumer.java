@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * @author CHEN Rongxin
  */
-@Component
+//@Component
 @RocketMQMessageListener(
 		topic = "post-media-upload",
 		consumerGroup = "${rocketmq.consumer.group}"
@@ -47,7 +47,7 @@ public class PostMediaConsumer implements RocketMQListener<String> {
 
 }
 
-@Component
+//@Component
 @RocketMQMessageListener(
 		topic = "post-media-delete",
 		consumerGroup = "${rocketmq.consumer.group}"
@@ -67,6 +67,7 @@ class PostMediaDeleteConsumer implements RocketMQListener<String> {
 		log.info(mqBody.toString());
 		if ("blob_post_img".equals(mqBody.getMessageType())) {
 			List<String> imageList = mqBody.get("imageList");
+			log.info(imageList.toString());
 			for (String image : imageList) {
 				azureBlobService.removeFile("media", image);
 			}

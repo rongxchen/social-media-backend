@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * @author CHEN Rongxin
  */
-@Component
+//@Component
 public class RocketMQProducer {
 
 	@Resource
