@@ -2,7 +2,6 @@ package rongxchen.socialmedia.service;
 
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
-import rongxchen.socialmedia.exceptions.UnauthorizedException;
 import rongxchen.socialmedia.models.dto.CommentDTO;
 import rongxchen.socialmedia.models.entity.CollectItem;
 import rongxchen.socialmedia.models.entity.Comment;
@@ -13,6 +12,7 @@ import rongxchen.socialmedia.repository.CollectItemRepository;
 import rongxchen.socialmedia.repository.CommentRepository;
 import rongxchen.socialmedia.repository.PostRepository;
 import rongxchen.socialmedia.repository.UserRepository;
+import rongxchen.socialmedia.service.azure.AzureBlobService;
 import rongxchen.socialmedia.service.common.MyMongoService;
 import rongxchen.socialmedia.utils.DateUtil;
 import rongxchen.socialmedia.utils.UUIDGenerator;
@@ -44,6 +44,11 @@ public class CommentService {
 	@Resource
 	private MyMongoService myMongoService;
 
+	@Resource
+	private AzureBlobService azureBlobService;
+
+	private final String BLOB_URL_PREFIX = "https://mysocialmediastorage.blob.core.windows.net/media";
+
 	public CommentVO addComment(CommentDTO commentDTO, String userId) {
 		// convert and store
 		Comment comment = new Comment();
@@ -56,6 +61,7 @@ public class CommentService {
 		comment.setPostId(commentDTO.getPostId());
 		comment.setParentId(commentDTO.getParentId());
 		comment.setReplyCommentId(commentDTO.getReplyCommentId());
+		comment.setReplyCommentUserId(commentDTO.getReplyCommentUserId());
 		comment.setLikeCount(0);
 		comment.setCommentCount(0);
 		comment.setAuthorId(userId);
@@ -67,8 +73,9 @@ public class CommentService {
 		}
 		// find user info
 		User user = userRepository.getByAppId(userId);
-		if (user == null) {
-			throw new UnauthorizedException("no such user");
+		User replyToUser = userRepository.getByAppId(commentDTO.getReplyCommentUserId());
+		if (user == null || replyToUser == null) {
+			throw new RuntimeException("no such user");
 		}
 		post.setCommentCount(post.getCommentCount()+1);
 		postRepository.save(post);
@@ -89,6 +96,7 @@ public class CommentService {
 		commentVO.setPostId(comment.getPostId());
 		commentVO.setParentId(comment.getParentId());
 		commentVO.setReplyCommentId(comment.getReplyCommentId());
+		commentVO.setReplyCommentUsername(replyToUser.getUsername());
 		commentVO.setLikeCount(comment.getLikeCount());
 		commentVO.setCommentCount(comment.getCommentCount());
 		commentVO.setAuthorId(comment.getAuthorId());
@@ -105,7 +113,7 @@ public class CommentService {
 											  Integer order,
 											  Integer offset) {
 		int defaultCommentSize = 8;
-		List<CommentVO> commentList = myMongoService
+		List<CommentVO> commentList = postId.equals(parentId) ? myMongoService
 				.lookup("users", "appId", "authorId", "userInfo")
 				.unwind("userInfo")
 				.match(Criteria.where("postId").is(postId).and("parentId").is(parentId))
@@ -115,7 +123,20 @@ public class CommentService {
 				.skip(offset)
 				.limit(defaultCommentSize)
 				.sort(sortField, order)
-				.fetchResult("comments", CommentVO.class);
+				.fetchResult("comments", CommentVO.class) : myMongoService
+						.lookup("users", "appId", "authorId", "userInfo")
+						.lookup("users", "appId", "replyCommentUserId", "replyCommentUser")
+						.unwind("userInfo")
+						.unwind("replyCommentUser")
+						.match(Criteria.where("postId").is(postId).and("parentId").is(parentId))
+						.project("commentId", "content", "image", "postId", "parentId", "replyCommentId",
+								"likeCount", "authorId", "createTime", "userInfo.username as authorName",
+								"userInfo.avatar as authorAvatar", "commentCount",
+								"replyCommentUser.username as replyCommentUsername", "replyCommentUserId")
+						.skip(offset)
+						.limit(defaultCommentSize)
+						.sort(sortField, order)
+						.fetchResult("comments", CommentVO.class);
 		for (CommentVO commentVO : commentList) {
 			commentVO.setCreateTime(DateUtil.convertToDisplayTime(commentVO.getCreateTime()));
 		}
@@ -155,6 +176,36 @@ public class CommentService {
 		} else {
 			return false;
 		}
+		return true;
+	}
+
+	public boolean deleteComment(String commentId, String userId) {
+		Comment comment = commentRepository.getByCommentId(commentId);
+		if (comment == null || !comment.getAuthorId().equals(userId)) {
+			throw new RuntimeException("failed to delete comment");
+		}
+		// delete image if any
+		if (comment.getImage() != null && !comment.getImage().isEmpty()) {
+			String blobName = comment.getImage().replace(BLOB_URL_PREFIX + "/", "");
+			azureBlobService.removeFile("media", blobName);
+		}
+		// update post comment count (and parent comment count if applicable)
+		Post post = postRepository.getByPostId(comment.getPostId());
+		if (post == null) {
+			throw new RuntimeException("no such post");
+		}
+		post.setCommentCount(post.getCommentCount()-1);
+		postRepository.save(post);
+		if (!comment.getParentId().equals(comment.getPostId())) {
+			Comment parentComment = commentRepository.getByCommentId(comment.getParentId());
+			if (parentComment == null) {
+				throw new RuntimeException("no such parent comment");
+			}
+			parentComment.setCommentCount(parentComment.getCommentCount()-1);
+			commentRepository.save(parentComment);
+		}
+		// delete comment
+		commentRepository.delete(comment);
 		return true;
 	}
 

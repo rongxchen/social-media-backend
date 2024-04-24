@@ -28,6 +28,8 @@ public class Comment {
 
 	private String replyCommentId;
 
+	private String replyCommentUserId;
+
 	private Integer likeCount;
 
 	private Integer commentCount;

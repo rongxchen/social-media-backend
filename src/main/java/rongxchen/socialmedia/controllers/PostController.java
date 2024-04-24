@@ -66,7 +66,7 @@ public class PostController {
 
 	@DeleteMapping
 	public Result<Boolean> deletePost(@RequestParam("postId") String postId,
-									  @RequestAttribute  String appId) {
+									  @RequestAttribute String appId) {
 		postService.deletePost(postId, appId);
 		return Result.success(true);
 	}

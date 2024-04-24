@@ -23,4 +23,6 @@ public class CommentDTO {
 
 	private String replyCommentId;
 
+	private String replyCommentUserId;
+
 }

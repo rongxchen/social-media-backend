@@ -20,6 +20,10 @@ public class CommentVO {
 
 	private String replyCommentId;
 
+	private String replyCommentUserId;
+
+	private String replyCommentUsername;
+
 	private Integer likeCount;
 
 	private Integer commentCount;

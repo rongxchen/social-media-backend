@@ -20,9 +20,10 @@ public class DateUtil {
 	}
 
 	public static String convertToDisplayTime(LocalDateTime localDateTime) {
-		int MINUTE = 60 * 1000;
-		int HOUR = MINUTE * 60;
-		int DAY = HOUR * 24;
+		long MINUTE = 60 * 1000;
+		long HOUR = MINUTE * 60;
+		long DAY = HOUR * 24;
+		long MONTH = DAY * 30;
 		LocalDateTime now = LocalDateTime.now();
 		long duration = ChronoUnit.MILLIS.between(localDateTime, now);
 		if (duration < MINUTE) {
@@ -35,6 +36,10 @@ public class DateUtil {
 		if (duration < DAY) {
 			long hours = duration / HOUR;
 			return hours + (hours == 1 ? " hour ago" : " hours ago");
+		}
+		if (duration < MONTH) {
+			long days = duration / DAY;
+			return days + (days == 1 ? " day ago" : " days ago");
 		}
 		return convertDateTimeToString(localDateTime);
 	}

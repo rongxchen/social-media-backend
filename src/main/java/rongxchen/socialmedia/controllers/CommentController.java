@@ -46,10 +46,17 @@ public class CommentController {
 
 	@PostMapping("/like-comment")
 	public Result<Boolean> likeComment(@RequestParam("commentId") String commentId,
-									@RequestParam("action") String action,
-									@RequestAttribute String appId) {
+									   @RequestParam("action") String action,
+									   @RequestAttribute String appId) {
 		boolean success = commentService.likeComment(commentId, action, appId);
 		return Result.success(success);
+	}
+
+	@DeleteMapping
+	public Result<Boolean> deleteComment(@RequestParam("commentId") String commentId,
+										 @RequestAttribute String appId) {
+		boolean deleted = commentService.deleteComment(commentId, appId);
+		return Result.success(deleted);
 	}
 
 }
