@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * @author CHEN Rongxin
@@ -39,11 +39,11 @@ public class User {
 
 	private String avatar;
 
-	private LocalDate birthday;
+	private LocalDateTime birthday;
 
-	private LocalDate createTime;
+	private LocalDateTime createTime;
 
-	private LocalDate updateTime;
+	private LocalDateTime updateTime;
 
 	private String role;
 

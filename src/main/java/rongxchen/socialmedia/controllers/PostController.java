@@ -31,8 +31,8 @@ public class PostController {
 	}
 
 	@GetMapping
-	public Result<List<PostVO>> getPosts(@RequestParam("page") long page) {
-		List<PostVO> posts = postService.getPostByPage(page);
+	public Result<List<PostVO>> getPosts(@RequestParam("offset") Integer offset) {
+		List<PostVO> posts = postService.getPostByPage(offset);
 		return Result.success(posts);
 	}
 

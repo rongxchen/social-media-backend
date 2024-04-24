@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -44,8 +44,8 @@ public class Post {
 	private Integer commentCount;
 
 	@NotNull
-	private LocalDate createTime;
+	private LocalDateTime createTime;
 
-	private LocalDate lastModifiedTime;
+	private LocalDateTime lastModifiedTime;
 
 }

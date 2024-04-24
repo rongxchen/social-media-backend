@@ -13,10 +13,10 @@ import java.util.List;
 @Repository
 public interface CollectItemRepository extends MongoRepository<CollectItem, String> {
 
-	@Query("{ 'itemId' : ?0 , 'itemType': ?1 'userId' : ?2}")
+	@Query("{ 'itemId' : ?0 , 'itemType': ?1 'userId' : ?2 }")
 	CollectItem getByItemId(String itemId, String itemType, String userId);
 
-	@Query(" { 'userId' : ?0 } ")
+	@Query("{ 'userId' : ?0 }")
 	List<CollectItem> getByUserId(String userId);
 
 }

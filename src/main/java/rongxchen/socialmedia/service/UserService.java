@@ -15,13 +15,11 @@ import rongxchen.socialmedia.models.vo.UserVO;
 import rongxchen.socialmedia.repository.RedisRepository;
 import rongxchen.socialmedia.repository.UserRepository;
 import rongxchen.socialmedia.service.azure.AzureMailService;
-import rongxchen.socialmedia.utils.EncryptionUtil;
-import rongxchen.socialmedia.utils.JwtUtil;
-import rongxchen.socialmedia.utils.RandomCodeGenerator;
-import rongxchen.socialmedia.utils.UUIDGenerator;
+import rongxchen.socialmedia.utils.*;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -85,8 +83,8 @@ public class UserService {
 		user.setStatus(1);
 		user.setDeleted(0);
 		user.setRole(UserRole.USER.getCode());
-		user.setCreateTime(LocalDate.now());
-		user.setUpdateTime(LocalDate.now());
+		user.setCreateTime(LocalDateTime.now());
+		user.setUpdateTime(LocalDateTime.now());
 		userRepository.save(user);
 	}
 
@@ -114,8 +112,8 @@ public class UserService {
 		userVo.setEmail(user.getEmail());
 		userVo.setSex(user.getSex());
 		userVo.setAvatar(user.getAvatar());
-		userVo.setCreateTime(user.getCreateTime());
-		userVo.setUpdateTime(user.getUpdateTime());
+		userVo.setCreateTime(DateUtil.convertDateTimeToString(user.getCreateTime()));
+		userVo.setUpdateTime(DateUtil.convertDateTimeToString(user.getUpdateTime()));
 		// create tokens for user if login successfully
 		HashMap<String, String> claims = new HashMap<>();
 		claims.put("appId", user.getAppId());
@@ -143,9 +141,9 @@ public class UserService {
 				throw new AccountException("username can only be updated once every 15 days");
 			}
 			user.setUsername(userVO.getUsername());
-			user.setUpdateTime(LocalDate.now());
+			user.setUpdateTime(LocalDateTime.now());
 		}
-		user.setBirthday(LocalDate.parse(userVO.getBirthday(), DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+		user.setBirthday(LocalDateTime.parse(userVO.getBirthday(), DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 		user.setSex(userVO.getSex());
 		user.setDescription(userVO.getDescription());
 		userRepository.save(user);

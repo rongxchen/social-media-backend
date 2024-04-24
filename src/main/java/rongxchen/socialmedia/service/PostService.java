@@ -13,12 +13,13 @@ import rongxchen.socialmedia.repository.CollectItemRepository;
 import rongxchen.socialmedia.repository.PostRepository;
 import rongxchen.socialmedia.service.azure.AzureBlobService;
 import rongxchen.socialmedia.service.common.MyMongoService;
+import rongxchen.socialmedia.utils.DateUtil;
 import rongxchen.socialmedia.utils.ObjectUtil;
 import rongxchen.socialmedia.utils.UUIDGenerator;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,8 +66,8 @@ public class PostService {
 		post.setFavoriteCount(0);
 		post.setCommentCount(0);
 		post.setTagList(postDTO.getTags());
-		post.setCreateTime(LocalDate.now());
-		post.setLastModifiedTime(LocalDate.now());
+		post.setCreateTime(LocalDateTime.now());
+		post.setLastModifiedTime(LocalDateTime.now());
 		List<String> imageList = new ArrayList<>();
 //		List<MQBody> mqBodyList = new ArrayList<>();
 		// send message to azure blob service to upload media files
@@ -93,20 +94,26 @@ public class PostService {
 		return postId;
 	}
 
-	public List<PostVO> getPostByPage(long page) {
+	public List<PostVO> getPostByPage(Integer offset) {
 		int defaultSize = 20;
-		return myMongoService
+		List<PostVO> postVOList = myMongoService
 				.lookup("users", "appId", "authorId", "userInfo")
 				.unwind("userInfo")
 				.project("postId", "title", "content", "imageList", "tagList", "authorId",
 						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
 						"likeCount", "favoriteCount", "commentCount", "createTime", "lastModifiedTime")
-				.byPage(page, defaultSize)
+				.skip(offset)
+				.limit(defaultSize)
 				.fetchResult("posts", PostVO.class);
+		for (PostVO postVO : postVOList) {
+			postVO.setCreateTime(DateUtil.convertToDisplayTime(postVO.getCreateTime()));
+			postVO.setLastModifiedTime(DateUtil.convertToDisplayTime(postVO.getLastModifiedTime()));
+		}
+		return postVOList;
 	}
 
 	public PostVO getPostByPostId(String postId) {
-		return myMongoService
+		PostVO postVO = myMongoService
 				.lookup("users", "appId", "authorId", "userInfo")
 				.unwind("userInfo")
 				.match(Criteria.where("postId").is(postId))
@@ -114,6 +121,9 @@ public class PostService {
 						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
 						"likeCount", "favoriteCount", "commentCount", "createTime", "lastModifiedTime")
 				.fetchOne("posts", PostVO.class);
+		postVO.setCreateTime(DateUtil.convertToDisplayTime(postVO.getCreateTime()));
+		postVO.setLastModifiedTime(DateUtil.convertToDisplayTime(postVO.getLastModifiedTime()));
+		return postVO;
 	}
 
 	public boolean collectPost(String postId, String action, String collectType, String userId) {
@@ -160,7 +170,7 @@ public class PostService {
 	public Map<String, Map<String, Integer>> getCollectionRecord(String userId) {
 		List<CollectItem> itemList = collectItemRepository.getByUserId(userId);
 		Map<String, Map<String, Integer>> record = new HashMap<>();
-		record.put("comments", new HashMap<>());
+		record.put("comment-likes", new HashMap<>());
 		record.put("likes", new HashMap<>());
 		record.put("favorites", new HashMap<>());
 		for (CollectItem item : itemList) {

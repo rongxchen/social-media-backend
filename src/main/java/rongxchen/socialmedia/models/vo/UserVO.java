@@ -4,7 +4,6 @@ import lombok.Data;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
-import java.time.LocalDate;
 
 /**
  * @author CHEN Rongxin
@@ -29,8 +28,8 @@ public class UserVO {
 
 	private String birthday;
 
-	private LocalDate createTime;
+	private String createTime;
 
-	private LocalDate updateTime;
+	private String updateTime;
 
 }
