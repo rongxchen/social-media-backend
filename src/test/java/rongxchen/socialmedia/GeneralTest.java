@@ -12,6 +12,9 @@ import rongxchen.socialmedia.repository.CollectItemRepository;
 import rongxchen.socialmedia.utils.ObjectUtil;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
  * @author CHEN Rongxin
@@ -24,12 +27,8 @@ public class GeneralTest {
 
 	@Test
 	void test() {
-		CollectItem item = collectItemRepository.getByItemId(
-				"post-9c089c5c-1672-416d-8a5e-cdb466097d53",
-				"likes",
-				"259a002f790042928e918a2e60a013ee");
-		System.out.println(item);
-		collectItemRepository.delete(item);
+		LocalDateTime parse = LocalDateTime.parse("2024-04-03T00:00:00");
+		System.out.println(parse);
 	}
 
 }

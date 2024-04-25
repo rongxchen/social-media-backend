@@ -59,8 +59,8 @@ public class PostController {
 	}
 
 	@GetMapping("/record")
-	public Result<Map<String, Map<String, Integer>>> getLikesRecord(@RequestAttribute String appId) {
-		Map<String, Map<String, Integer>> record = postService.getCollectionRecord(appId);
+	public Result<Map<String, List<String>>> getLikesRecord(@RequestAttribute String appId) {
+		Map<String, List<String>> record = postService.getCollectionRecord(appId);
 		return Result.success(record);
 	}
 

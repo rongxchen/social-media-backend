@@ -167,14 +167,14 @@ public class PostService {
 		return true;
 	}
 
-	public Map<String, Map<String, Integer>> getCollectionRecord(String userId) {
+	public Map<String, List<String>> getCollectionRecord(String userId) {
 		List<CollectItem> itemList = collectItemRepository.getByUserId(userId);
-		Map<String, Map<String, Integer>> record = new HashMap<>();
-		record.put("comment-likes", new HashMap<>());
-		record.put("likes", new HashMap<>());
-		record.put("favorites", new HashMap<>());
+		Map<String, List<String>> record = new HashMap<>();
+		record.put("comment-likes", new ArrayList<>());
+		record.put("likes", new ArrayList<>());
+		record.put("favorites", new ArrayList<>());
 		for (CollectItem item : itemList) {
-			record.get(item.getItemType()).put(item.getItemId(), 1);
+			record.get(item.getItemType()).add(item.getItemId());
 		}
 		return record;
 	}

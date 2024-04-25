@@ -9,9 +9,11 @@ import rongxchen.socialmedia.message_queue.RocketMQProducer;
 import rongxchen.socialmedia.exceptions.AccountException;
 import rongxchen.socialmedia.exceptions.HttpException;
 import rongxchen.socialmedia.models.dto.UserDTO;
+import rongxchen.socialmedia.models.entity.Friend;
 import rongxchen.socialmedia.models.entity.User;
 import rongxchen.socialmedia.models.mq.MQBody;
 import rongxchen.socialmedia.models.vo.UserVO;
+import rongxchen.socialmedia.repository.FriendRepository;
 import rongxchen.socialmedia.repository.RedisRepository;
 import rongxchen.socialmedia.repository.UserRepository;
 import rongxchen.socialmedia.service.azure.AzureMailService;
@@ -23,7 +25,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author CHEN Rongxin
@@ -34,6 +38,9 @@ public class UserService {
 
 	@Resource
 	private UserRepository userRepository;
+
+	@Resource
+	private FriendRepository friendRepository;
 
 	@Resource
 	private RedisRepository redisRepository;
@@ -64,6 +71,8 @@ public class UserService {
 		if (!findCode.equals(code)) {
 			throw new AccountException("code unmatched");
 		}
+		// remove code from redis
+		redisRepository.removeItem(RedisKey.VERIFICATION_CODE.getCode(), userDto.getEmail());
 		// set up basic info
 		user.setEmail(userDto.getEmail());
 		user.setUsername(userDto.getUsername());
@@ -108,7 +117,9 @@ public class UserService {
 		userVo.setUsername(user.getUsername());
 		userVo.setAppId(user.getAppId());
 		userVo.setDescription(user.getDescription());
-		userVo.setBirthday(user.getBirthday().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+		if (user.getBirthday() != null) {
+			userVo.setBirthday(user.getBirthday().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+		}
 		userVo.setEmail(user.getEmail());
 		userVo.setSex(user.getSex());
 		userVo.setAvatar(user.getAvatar());
@@ -143,7 +154,10 @@ public class UserService {
 			user.setUsername(userVO.getUsername());
 			user.setUpdateTime(LocalDateTime.now());
 		}
-		user.setBirthday(LocalDateTime.parse(userVO.getBirthday(), DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+		if (userVO.getBirthday() != null && !userVO.getBirthday().isEmpty()) {
+			LocalDate birthday = LocalDate.parse(userVO.getBirthday(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+			user.setBirthday(birthday);
+		}
 		user.setSex(userVO.getSex());
 		user.setDescription(userVO.getDescription());
 		userRepository.save(user);
@@ -165,6 +179,11 @@ public class UserService {
 		User user = userRepository.getByEmail(email);
 		if (user != null) {
 			throw new AccountException("email has been registered");
+		}
+		// find if the code existed already
+		String findCode = redisRepository.get(RedisKey.VERIFICATION_CODE.getCode(), email);
+		if (findCode != null && !findCode.isEmpty()) {
+			throw new RuntimeException("verification code has been sent, please check your email");
 		}
 		// generate verification code and store in redis
 		String code = RandomCodeGenerator.generateVerificationCode();
@@ -215,6 +234,40 @@ public class UserService {
 		Map<String, String> data = new HashMap<>();
 		data.put("accessToken", token);
 		return data;
+	}
+
+	public boolean collectFriend(String action, String friendId, String myId) {
+		Friend findFriend = friendRepository.getFriend(myId, friendId);
+		if ("follow".equals(action)) {
+			if (findFriend != null) {
+				throw new RuntimeException("followed already");
+			}
+			Friend friend = new Friend();
+			friend.setFollowedTime(LocalDateTime.now());
+			friend.setFriendId(friendId);
+			friend.setFollowedByUserId(myId);
+			friendRepository.save(friend);
+		} else if ("unfollow".equals(action)) {
+			if (findFriend != null) {
+				friendRepository.delete(findFriend);
+			}
+		} else {
+			return false;
+		}
+		return true;
+	}
+
+	public Map<String, List<String>> getFriendList(String userId) {
+		Map<String, List<String>> friendList = new HashMap<>();
+		friendList.put("follows",
+				friendRepository.getMyFollows(userId)
+						.stream().map(Friend::getFriendId)
+						.collect(Collectors.toList()));
+		friendList.put("followers",
+				friendRepository.getMyFollowers(userId)
+						.stream().map(Friend::getFollowedByUserId)
+						.collect(Collectors.toList()));
+		return friendList;
 	}
 
 }

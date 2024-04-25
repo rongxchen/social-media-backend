@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -39,7 +40,7 @@ public class User {
 
 	private String avatar;
 
-	private LocalDateTime birthday;
+	private LocalDate birthday;
 
 	private LocalDateTime createTime;
 

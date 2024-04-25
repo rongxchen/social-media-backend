@@ -10,6 +10,7 @@ import rongxchen.socialmedia.service.UserService;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.Size;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -66,6 +67,22 @@ public class UserController {
 	public Result<Map<String, String>> refreshToken(@RequestHeader("refresh-token") String refreshToken) {
 		Map<String, String> map = userService.refreshToken(refreshToken);
 		return Result.success(map);
+	}
+
+	@PostMapping("/friends")
+	@LoginToken
+	public Result<Boolean> collectFriends(@RequestParam("action") String action,
+										  @RequestParam("friendId") String friendId,
+										  @RequestAttribute String appId) {
+		boolean success = userService.collectFriend(action, friendId, appId);
+		return Result.success(success);
+	}
+
+	@GetMapping("/friends")
+	@LoginToken
+	public Result<Map<String, List<String>>> getFriendList(@RequestAttribute String appId) {
+		Map<String, List<String>> friendList = userService.getFriendList(appId);
+		return Result.success(friendList);
 	}
 
 }

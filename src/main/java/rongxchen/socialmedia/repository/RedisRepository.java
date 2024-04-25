@@ -24,6 +24,10 @@ public class RedisRepository {
 				.set(topic + hashKey, value, seconds, TimeUnit.SECONDS);
 	}
 
+	public void removeItem(String topic, String hashKey) {
+		redisTemplate.delete(topic + hashKey);
+	}
+
 	public String get(String topic, String hashKey) {
 		Object data = redisTemplate.opsForValue().get(topic + hashKey);
 		return data == null ? null : data.toString();
