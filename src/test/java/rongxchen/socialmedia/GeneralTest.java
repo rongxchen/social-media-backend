@@ -8,12 +8,15 @@ import org.springframework.stereotype.Component;
 import rongxchen.socialmedia.message_queue.RocketMQProducer;
 import rongxchen.socialmedia.models.entity.CollectItem;
 import rongxchen.socialmedia.models.mq.MQBody;
+import rongxchen.socialmedia.models.vo.UserVO;
 import rongxchen.socialmedia.repository.CollectItemRepository;
+import rongxchen.socialmedia.service.UserService;
 import rongxchen.socialmedia.utils.ObjectUtil;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -23,12 +26,12 @@ import java.util.Locale;
 public class GeneralTest {
 
 	@Resource
-	CollectItemRepository collectItemRepository;
+	UserService userService;
 
 	@Test
 	void test() {
-		LocalDateTime parse = LocalDateTime.parse("2024-04-03T00:00:00");
-		System.out.println(parse);
+		List<UserVO.SimpleUserVO> followsList = userService.getFollowsList("259a002f790042928e918a2e60a013ee", 0);
+		followsList.forEach(System.out::println);
 	}
 
 }

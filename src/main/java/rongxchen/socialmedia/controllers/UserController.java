@@ -80,9 +80,25 @@ public class UserController {
 
 	@GetMapping("/friends")
 	@LoginToken
-	public Result<Map<String, List<String>>> getFriendList(@RequestAttribute String appId) {
-		Map<String, List<String>> friendList = userService.getFriendList(appId);
+	public Result<Map<String, List<String>>> getFriendIdList(@RequestAttribute String appId) {
+		Map<String, List<String>> friendList = userService.getFriendIdList(appId);
 		return Result.success(friendList);
+	}
+
+	@GetMapping("/friends/follows")
+	@LoginToken
+	public Result<List<UserVO.SimpleUserVO>> getFollows(@RequestParam("offset") Integer offset,
+														@RequestAttribute String appId) {
+		List<UserVO.SimpleUserVO> followsList = userService.getFollowsList(appId, offset);
+		return Result.success(followsList);
+	}
+
+	@GetMapping("/friends/followers")
+	@LoginToken
+	public Result<List<UserVO.SimpleUserVO>> getFollowers(@RequestParam("offset") Integer offset,
+														@RequestAttribute String appId) {
+		List<UserVO.SimpleUserVO> followersList = userService.getFollowersList(appId, offset);
+		return Result.success(followersList);
 	}
 
 }

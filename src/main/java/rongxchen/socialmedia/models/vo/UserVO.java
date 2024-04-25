@@ -32,4 +32,14 @@ public class UserVO {
 
 	private String updateTime;
 
+	@Data
+	public static class SimpleUserVO {
+		@Size(max = 100, min = 1)
+		private String username;
+
+		private String appId;
+
+		private String avatar;
+	}
+
 }

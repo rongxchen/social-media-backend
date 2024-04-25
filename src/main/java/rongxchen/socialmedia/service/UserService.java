@@ -1,5 +1,6 @@
 package rongxchen.socialmedia.service;
 
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import rongxchen.socialmedia.repository.FriendRepository;
 import rongxchen.socialmedia.repository.RedisRepository;
 import rongxchen.socialmedia.repository.UserRepository;
 import rongxchen.socialmedia.service.azure.AzureMailService;
+import rongxchen.socialmedia.service.common.MyMongoService;
 import rongxchen.socialmedia.utils.*;
 
 import javax.annotation.Resource;
@@ -44,6 +46,9 @@ public class UserService {
 
 	@Resource
 	private RedisRepository redisRepository;
+
+	@Resource
+	private MyMongoService myMongoService;
 
 	// TODO
 //	@Resource
@@ -257,17 +262,41 @@ public class UserService {
 		return true;
 	}
 
-	public Map<String, List<String>> getFriendList(String userId) {
+	public Map<String, List<String>> getFriendIdList(String userId) {
 		Map<String, List<String>> friendList = new HashMap<>();
+		// find follows
 		friendList.put("follows",
 				friendRepository.getMyFollows(userId)
 						.stream().map(Friend::getFriendId)
 						.collect(Collectors.toList()));
+		// find followers
 		friendList.put("followers",
 				friendRepository.getMyFollowers(userId)
 						.stream().map(Friend::getFollowedByUserId)
 						.collect(Collectors.toList()));
 		return friendList;
+	}
+
+	public List<UserVO.SimpleUserVO> getFollowsList(String userId, int offset) {
+		int defaultSize = 20;
+		return myMongoService.lookup("users", "appId", "friendId", "friendInfo")
+				.unwind("friendInfo")
+				.match(Criteria.where("followedByUserId").is(userId))
+				.project("friendInfo.username as username", "friendInfo.avatar as avatar", "friendId as appId")
+				.skip(offset)
+				.limit(defaultSize)
+				.fetchResult("friends", UserVO.SimpleUserVO.class);
+	}
+
+	public List<UserVO.SimpleUserVO> getFollowersList(String userId, int offset) {
+		int defaultSize = 20;
+		return myMongoService.lookup("users", "appId", "followedByUserId", "friendInfo")
+				.unwind("friendInfo")
+				.match(Criteria.where("friendId").is(userId))
+				.project("friendInfo.username as username", "friendInfo.avatar as avatar", "followedByUserId as appId")
+				.skip(offset)
+				.limit(defaultSize)
+				.fetchResult("friends", UserVO.SimpleUserVO.class);
 	}
 
 }
