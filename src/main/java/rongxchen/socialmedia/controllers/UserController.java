@@ -48,6 +48,13 @@ public class UserController {
 		return Result.success(data);
 	}
 
+	@GetMapping
+	@LoginToken
+	public Result<UserVO> getUserInfo(@RequestParam("userId") String userId) {
+		UserVO userInfo = userService.getUserInfo(userId);
+		return Result.success(userInfo);
+	}
+
 	@PutMapping
 	@LoginToken
 	public Result<Boolean> updateUserInfo(@RequestAttribute String appId,
@@ -83,6 +90,13 @@ public class UserController {
 	public Result<Map<String, List<String>>> getFriendIdList(@RequestAttribute String appId) {
 		Map<String, List<String>> friendList = userService.getFriendIdList(appId);
 		return Result.success(friendList);
+	}
+
+	@GetMapping("/friends/count")
+	@LoginToken
+	public Result<Map<String, Integer>> getFriendsCount(@RequestParam("userId") String userId) {
+		Map<String, Integer> friendsCount = userService.getFriendsCount(userId);
+		return Result.success(friendsCount);
 	}
 
 	@GetMapping("/friends/follows")

@@ -1,5 +1,6 @@
 package rongxchen.socialmedia.service;
 
+import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -149,6 +150,18 @@ public class UserService {
 		}
 	}
 
+	public UserVO getUserInfo(String appId) {
+		User user = userRepository.getByAppId(appId);
+		UserVO userVO = new UserVO();
+		userVO.setAppId(user.getAppId());
+		userVO.setUsername(user.getUsername());
+		userVO.setAvatar(user.getAvatar());
+		userVO.setSex(user.getSex());
+		userVO.setAge((int) ChronoUnit.YEARS.between(user.getBirthday(), LocalDate.now()));
+		userVO.setDescription(user.getDescription());
+		return userVO;
+	}
+
 	public void updateUser(String appId, UserVO userVO) {
 		User user = userRepository.getByAppId(appId);
 		checkUserExists(user);
@@ -161,6 +174,9 @@ public class UserService {
 		}
 		if (userVO.getBirthday() != null && !userVO.getBirthday().isEmpty()) {
 			LocalDate birthday = LocalDate.parse(userVO.getBirthday(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+			if (birthday.isAfter(LocalDate.now())) {
+				throw new RuntimeException("birthday cannot be in the future");
+			}
 			user.setBirthday(birthday);
 		}
 		user.setSex(userVO.getSex());
@@ -260,6 +276,21 @@ public class UserService {
 			return false;
 		}
 		return true;
+	}
+
+	public Map<String, Integer> getFriendsCount(String userId) {
+		Map<String, Integer> countMap = new HashMap<>();
+		// count follows
+		Friend following = new Friend();
+		following.setFollowedByUserId(userId);
+		Example<Friend> followsCountExample = Example.of(following);
+		countMap.put("follows", (int) friendRepository.count(followsCountExample));
+		// count followers
+		following.setFollowedByUserId(null);
+		following.setFriendId(userId);
+		Example<Friend> followersCountExample = Example.of(following);
+		countMap.put("followers", (int) friendRepository.count(followersCountExample));
+		return countMap;
 	}
 
 	public Map<String, List<String>> getFriendIdList(String userId) {

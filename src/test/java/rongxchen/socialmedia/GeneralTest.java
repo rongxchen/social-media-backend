@@ -8,8 +8,10 @@ import org.springframework.stereotype.Component;
 import rongxchen.socialmedia.message_queue.RocketMQProducer;
 import rongxchen.socialmedia.models.entity.CollectItem;
 import rongxchen.socialmedia.models.mq.MQBody;
+import rongxchen.socialmedia.models.vo.PostVO;
 import rongxchen.socialmedia.models.vo.UserVO;
 import rongxchen.socialmedia.repository.CollectItemRepository;
+import rongxchen.socialmedia.service.PostService;
 import rongxchen.socialmedia.service.UserService;
 import rongxchen.socialmedia.utils.ObjectUtil;
 
@@ -26,12 +28,12 @@ import java.util.Locale;
 public class GeneralTest {
 
 	@Resource
-	UserService userService;
+	PostService postService;
 
 	@Test
 	void test() {
-		List<UserVO.SimpleUserVO> followsList = userService.getFollowsList("259a002f790042928e918a2e60a013ee", 0);
-		followsList.forEach(System.out::println);
+		List<PostVO> items = postService.getCollectedPostOfUser("259a002f790042928e918a2e60a013ee", "favorites", 0);
+		items.forEach(System.out::println);
 	}
 
 }

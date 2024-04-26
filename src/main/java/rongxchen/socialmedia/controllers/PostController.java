@@ -31,9 +31,19 @@ public class PostController {
 	}
 
 	@GetMapping
-	public Result<List<PostVO>> getPosts(@RequestParam("offset") Integer offset) {
-		List<PostVO> posts = postService.getPostByPage(offset);
+	public Result<List<PostVO>> getPosts(@RequestParam("offset") Integer offset,
+										 @RequestParam(value = "userId", required = false) String userId) {
+		List<PostVO> posts = userId == null ? postService.getPostByPage(offset)
+				: postService.getPostOfUser(userId, offset);
 		return Result.success(posts);
+	}
+
+	@GetMapping("/collected")
+	public Result<List<PostVO>> getCollectedPosts(@RequestParam("offset") Integer offset,
+												  @RequestParam("itemType") String itemType,
+												  @RequestParam("userId") String userId) {
+		List<PostVO> collectedPosts = postService.getCollectedPostOfUser(userId, itemType, offset);
+		return Result.success(collectedPosts);
 	}
 
 	@GetMapping("/{postId}")

@@ -112,6 +112,51 @@ public class PostService {
 		return postVOList;
 	}
 
+	public List<PostVO> getPostOfUser(String userId, Integer offset) {
+		int defaultSize = 20;
+		List<PostVO> postVOList = myMongoService
+				.lookup("users", "appId", "authorId", "userInfo")
+				.unwind("userInfo")
+				.match(Criteria.where("authorId").is(userId))
+				.project("postId", "title", "content", "imageList", "tagList", "authorId",
+						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
+						"likeCount", "favoriteCount", "commentCount", "createTime", "lastModifiedTime")
+				.skip(offset)
+				.limit(defaultSize)
+				.fetchResult("posts", PostVO.class);
+		for (PostVO postVO : postVOList) {
+			postVO.setCreateTime(DateUtil.convertToDisplayTime(postVO.getCreateTime()));
+			postVO.setLastModifiedTime(DateUtil.convertToDisplayTime(postVO.getLastModifiedTime()));
+		}
+		return postVOList;
+	}
+
+	public List<PostVO> getCollectedPostOfUser(String userId, String itemType, Integer offset) {
+		int defaultSize = 20;
+		List<PostVO> postVOList = myMongoService
+				.lookup("posts", "postId", "itemId", "postInfo")
+				.lookup("users", "appId", "userId", "userInfo")
+				.unwind("postInfo")
+				.unwind("userInfo")
+				.match(Criteria.where("userId").is(userId)
+						.and("itemType").is(itemType)
+						.and("itemMeta").is("post"))
+				.project("postInfo.postId as postId", "postInfo.title as title", "postInfo.content as content",
+						"postInfo.imageList as imageList", "postInfo.tagList as tagList", "postInfo.authorId as authorId",
+						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
+						"postInfo.likeCount as likeCount", "postInfo.favoriteCount as favoriteCount",
+						"postInfo.commentCount as commentCount", "postInfo.createTime as createTime",
+						"postInfo.lastModifiedTime as lastModifiedTime")
+				.skip(offset)
+				.limit(defaultSize)
+				.fetchResult("collect_items", PostVO.class);
+		for (PostVO postVO : postVOList) {
+			postVO.setCreateTime(DateUtil.convertToDisplayTime(postVO.getCreateTime()));
+			postVO.setLastModifiedTime(DateUtil.convertToDisplayTime(postVO.getLastModifiedTime()));
+		}
+		return postVOList;
+	}
+
 	public PostVO getPostByPostId(String postId) {
 		PostVO postVO = myMongoService
 				.lookup("users", "appId", "authorId", "userInfo")

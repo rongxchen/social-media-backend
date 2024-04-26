@@ -28,6 +28,8 @@ public class UserVO {
 
 	private String birthday;
 
+	private Integer age;
+
 	private String createTime;
 
 	private String updateTime;
