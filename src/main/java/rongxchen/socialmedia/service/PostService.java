@@ -1,5 +1,6 @@
 package rongxchen.socialmedia.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,8 @@ public class PostService {
 	@Resource
 	private AzureBlobService azureBlobService;
 
-	private final String BLOB_URL_PREFIX = "https://mysocialmediastorage.blob.core.windows.net/media";
+	@Value("${spring.cloud.azure.storage.blob.end-point}")
+	private String BLOB_URL_PREFIX;
 
 	public String publishPost(MultipartFile[] files, String postJsonString, String appId) {
 		PostDTO postDTO = objectUtil.read(postJsonString, PostDTO.class);
@@ -74,7 +76,7 @@ public class PostService {
 		for (MultipartFile file : files) {
 			String suffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
 			String blobName = postId + "/" + UUIDGenerator.generate(true) + suffix;
-			String imageUrl = BLOB_URL_PREFIX + "/" + blobName;
+			String imageUrl = BLOB_URL_PREFIX + "media/" + blobName;
 			imageList.add(imageUrl);
 //			MQBody mqBody = new MQBody("blob_post_img");
 //			mqBody.add("blobName", blobName);
@@ -231,10 +233,10 @@ public class PostService {
 	public void deletePost(String postId, String appId) {
 		Post post = postRepository.getByPostId(postId);
 		if (!post.getAuthorId().equals(appId)) {
-			throw new HttpException(HttpStatus.FORBIDDEN, "not  authorized to delete this post");
+			throw new HttpException(HttpStatus.FORBIDDEN, "not authorized to delete this post");
 		}
 		List<String> blobNames = post.getImageList()
-				.stream().map(x -> x.replace(BLOB_URL_PREFIX + "/", ""))
+				.stream().map(x -> x.replace(BLOB_URL_PREFIX + "media/", ""))
 				.collect(Collectors.toList());
 		// TODO
 //		MQBody mqBody = new MQBody("blob_post_img");

@@ -9,10 +9,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author CHEN Rongxin
  */
-@Component
+//@Component
 public class RedisRepository {
 
-	@Resource
+//	@Resource
 	RedisTemplate<String, Object> redisTemplate;
 
 	public void setItem(String topic, String hashKey, String value) {

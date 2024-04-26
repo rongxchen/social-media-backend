@@ -1,7 +1,11 @@
 package rongxchen.socialmedia.service;
 
+import org.bson.Document;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,8 +53,11 @@ public class UserService {
 	@Resource
 	private FriendRepository friendRepository;
 
+//	@Resource
+//	private RedisRepository redisRepository;
+
 	@Resource
-	private RedisRepository redisRepository;
+	private MongoTemplate mongoTemplate;
 
 	@Resource
 	private MyMongoService myMongoService;
@@ -65,7 +72,8 @@ public class UserService {
 	@Resource
 	private AzureBlobService azureBlobService;
 
-	private final String BLOB_URL_PREFIX = "https://mysocialmediastorage.blob.core.windows.net/media";
+	@Value("${spring.cloud.azure.storage.blob.end-point}")
+	private String BLOB_URL_PREFIX;
 
 	public void signUp(UserDTO userDto, String code) {
 		// find if user has registered before
@@ -79,7 +87,10 @@ public class UserService {
 			user.setAppId(findUser.getAppId());
 		}
 		// check if code is correct
-		String findCode = redisRepository.get(RedisKey.VERIFICATION_CODE.getCode(), userDto.getEmail());
+//		String findCode = redisRepository.get(RedisKey.VERIFICATION_CODE.getCode(), userDto.getEmail());
+		Query query = new Query(Criteria.where("itemKey").is(RedisKey.VERIFICATION_CODE.getCode() + userDto.getEmail()));
+		List<Document> documents = mongoTemplate.find(query, Document.class, "sundries");
+		String findCode = documents.isEmpty() ? null : documents.get(0).getString("code");
 		if (findCode == null) {
 			throw new AccountException("code expired");
 		}
@@ -87,7 +98,8 @@ public class UserService {
 			throw new AccountException("code unmatched");
 		}
 		// remove code from redis
-		redisRepository.removeItem(RedisKey.VERIFICATION_CODE.getCode(), userDto.getEmail());
+//		redisRepository.removeItem(RedisKey.VERIFICATION_CODE.getCode(), userDto.getEmail());
+		mongoTemplate.remove(documents.get(0), "sundries");
 		// set up basic info
 		user.setEmail(userDto.getEmail());
 		user.setUsername(userDto.getUsername());
@@ -205,7 +217,7 @@ public class UserService {
 		} catch (IOException e) {
 			throw new RuntimeException("failed to upload avatar");
 		}
-		String newAvatar = BLOB_URL_PREFIX + "/" + blobName;
+		String newAvatar = BLOB_URL_PREFIX + "media/" + blobName;
 		if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
 			removeAvatar(appId);
 		}
@@ -220,7 +232,7 @@ public class UserService {
 			throw new RuntimeException("user not found");
 		}
 		if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
-			String blobName = user.getAvatar().replace(BLOB_URL_PREFIX + "/", "");
+			String blobName = user.getAvatar().replace(BLOB_URL_PREFIX + "media/", "");
 			azureBlobService.removeFile("media", blobName);
 		}
 		user.setAvatar("");
@@ -246,13 +258,20 @@ public class UserService {
 			throw new AccountException("email has been registered");
 		}
 		// find if the code existed already
-		String findCode = redisRepository.get(RedisKey.VERIFICATION_CODE.getCode(), email);
+//		String findCode = redisRepository.get(RedisKey.VERIFICATION_CODE.getCode(), email);
+		Query query = new Query(Criteria.where("itemKey").is(RedisKey.VERIFICATION_CODE.getCode() + email));
+		List<Document> documents = mongoTemplate.find(query, Document.class, "sundries");
+		String findCode = documents.isEmpty() ? "" : documents.get(0).getString("code");
 		if (findCode != null && !findCode.isEmpty()) {
 			throw new RuntimeException("verification code has been sent, please check your email");
 		}
 		// generate verification code and store in redis
 		String code = RandomCodeGenerator.generateVerificationCode();
-		redisRepository.setItem(RedisKey.VERIFICATION_CODE.getCode(), email, code, 60 * 10);
+//		redisRepository.setItem(RedisKey.VERIFICATION_CODE.getCode(), email, code, 60 * 10);
+		Document document = new Document();
+		document.put("itemKey", RedisKey.VERIFICATION_CODE.getCode() + email);
+		document.put("code", code);
+		mongoTemplate.save(document, "sundries");
 		// set message meta for mq
 		// TODO
 //		MQBody mqBody = new MQBody("mail_verification_code");
