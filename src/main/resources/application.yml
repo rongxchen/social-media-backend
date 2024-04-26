@@ -5,13 +5,12 @@ spring:
   # mongodb
   data:
     mongodb:
-      # password: mysocialmedia2024
-      uri: mongodb://localhost:27017 # mongodb://my-social-media-cosmos:9JzCPmnzPUssLOkRLAPQQYlp2Mj1q7Zw58s3nO5o5vtSQ2DrFaDWIMSneam2J6kfboTukgpdfaqUACDbX5n6MA==@my-social-media-cosmos.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@my-social-media-cosmos@
-      database: my-social-media # my-social-media-db
+      uri: "mongodb://social-media-cosmos-mongo:9UcSfM5HyVkDKU9zCtFN3SLih1vhhWr9Iie2RmPqcymX9Tr9TLFwXuK7rAVUjep9yYuGpmCWWnRnACDbtMVYjg==@social-media-cosmos-mongo.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@social-media-cosmos-mongo@" # mongodb://localhost:27017
+      database: my-social-media
   # redis
-  redis:
-    host: localhost
-    port: 6379
+#  redis:
+#    host: localhost
+#    port: 6379
   # file upload settings
   servlet:
     multipart:
@@ -22,18 +21,18 @@ spring:
     azure:
       storage:
         blob:
-          account-name: mysocialmediastorage
-          account-key: 5Z8rXfkKRZV0R+fTkejxKDCLDiJgMUGEtgvrBrKOuk3rJz/cvtVEyDocfdnozJFb6oHuUFbkSFHV+AStAJ3CjQ==
-          endpoint: https://mysocialmediastorage.blob.core.windows.net/media
+          account-name: myappsocialmediastorage
+          account-key: "oLf39h+MuzrCIYwx7rNpnQJI98JHZVEabBqae20J4g332//va/2jvUpl/Lp4jTmaeorhprZaOPRZ+AStmcJf8A=="
+          endpoint: https://myappsocialmediastorage.blob.core.windows.net/
 
 server:
   port: 8080
 
 azure:
   communication:
-    connection-string: "endpoint=https://my-azure-communication.asiapacific.communication.azure.com/;accesskey=akE1n6Ugtpa4Q7y7AW0ur+43R1K+XdEWpQVXeEATtO9m/uRx3dgHsQXnqO2e54+ZevvZB1KSC6gdVSvlv2bK7A=="
+    connection-string: "endpoint=https://social-media-communication.unitedstates.communication.azure.com/;accesskey=7nWIRT0fnwOiTtrcT0HXfEJAOYSHI5B8LoBumamq+X5O1ZiVlPMUuLR2zK989c4MvE2Ar+5OiXDL2u7UgD6bmw=="
     email:
-      sender-address: "DoNotReply@3fce49cd-cdaf-482b-90a6-6752e6f1fb8d.azurecomm.net"
+      sender-address: "DoNotReply@c4908098-8fc2-4bc0-b098-96166c28de5c.azurecomm.net"
       sender-name: "My Social Media"
 
 frontend:
