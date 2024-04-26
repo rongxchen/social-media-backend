@@ -1,12 +1,12 @@
 spring:
   # basic
   application:
-    name: SocialMedia
+    name: "SocialMedia"
   # mongodb
   data:
     mongodb:
       uri: "mongodb://social-media-cosmos-mongo:9UcSfM5HyVkDKU9zCtFN3SLih1vhhWr9Iie2RmPqcymX9Tr9TLFwXuK7rAVUjep9yYuGpmCWWnRnACDbtMVYjg==@social-media-cosmos-mongo.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@social-media-cosmos-mongo@" # mongodb://localhost:27017
-      database: my-social-media
+      database: "my-social-media"
   # redis
 #  redis:
 #    host: localhost
@@ -21,9 +21,9 @@ spring:
     azure:
       storage:
         blob:
-          account-name: myappsocialmediastorage
+          account-name: "myappsocialmediastorage"
           account-key: "oLf39h+MuzrCIYwx7rNpnQJI98JHZVEabBqae20J4g332//va/2jvUpl/Lp4jTmaeorhprZaOPRZ+AStmcJf8A=="
-          endpoint: https://myappsocialmediastorage.blob.core.windows.net/
+          endpoint: "https://myappsocialmediastorage.blob.core.windows.net/"
 
 server:
   port: 8080
@@ -36,7 +36,7 @@ azure:
       sender-name: "My Social Media"
 
 frontend:
-  url: "http://localhost:3000"
+  url: "https://red-moss-07a653b0f.5.azurestaticapps.net" # "http://localhost:3000"
 
 #rocketmq:
 #  name-server: "localhost:9876"
