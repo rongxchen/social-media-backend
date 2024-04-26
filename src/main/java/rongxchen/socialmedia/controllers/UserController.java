@@ -2,6 +2,7 @@ package rongxchen.socialmedia.controllers;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import rongxchen.socialmedia.common.annotations.LoginToken;
 import rongxchen.socialmedia.models.Result;
 import rongxchen.socialmedia.models.dto.UserDTO;
@@ -61,6 +62,21 @@ public class UserController {
 										  @RequestBody @Validated UserVO userVO) {
 		userService.updateUser(appId, userVO);
 		return Result.success(true);
+	}
+
+	@PutMapping("/avatar")
+	@LoginToken
+	public Result<String> uploadAvatar(@RequestParam("file") MultipartFile file,
+										@RequestAttribute String appId) {
+		String avatar = userService.uploadAvatar(appId, file);
+		return Result.success(avatar);
+	}
+
+	@DeleteMapping("/avatar")
+	@LoginToken
+	public Result<Void> removeAvatar(@RequestAttribute String appId) {
+		userService.removeAvatar(appId);
+		return Result.success(null);
 	}
 
 	@DeleteMapping

@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import rongxchen.socialmedia.enums.RedisKey;
 import rongxchen.socialmedia.enums.UserRole;
 import rongxchen.socialmedia.message_queue.RocketMQProducer;
@@ -18,11 +19,13 @@ import rongxchen.socialmedia.models.vo.UserVO;
 import rongxchen.socialmedia.repository.FriendRepository;
 import rongxchen.socialmedia.repository.RedisRepository;
 import rongxchen.socialmedia.repository.UserRepository;
+import rongxchen.socialmedia.service.azure.AzureBlobService;
 import rongxchen.socialmedia.service.azure.AzureMailService;
 import rongxchen.socialmedia.service.common.MyMongoService;
 import rongxchen.socialmedia.utils.*;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,6 +33,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +61,11 @@ public class UserService {
 
 	@Resource
 	private AzureMailService azureMailService;
+
+	@Resource
+	private AzureBlobService azureBlobService;
+
+	private final String BLOB_URL_PREFIX = "https://mysocialmediastorage.blob.core.windows.net/media";
 
 	public void signUp(UserDTO userDto, String code) {
 		// find if user has registered before
@@ -184,6 +193,38 @@ public class UserService {
 		userRepository.save(user);
 	}
 
+	public String uploadAvatar(String appId, MultipartFile file) {
+		User user = userRepository.getByAppId(appId);
+		if (user == null) {
+			throw new RuntimeException("user not found");
+		}
+		String suffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
+		String blobName = "users/avatar/" + UUIDGenerator.generate(true) + suffix;
+		try {
+			azureBlobService.uploadFile("media", blobName, file.getInputStream(), file.getContentType());
+		} catch (IOException e) {
+			throw new RuntimeException("failed to upload avatar");
+		}
+		String newAvatar = BLOB_URL_PREFIX + "/" + blobName;
+		if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+			removeAvatar(appId);
+			user.setAvatar(newAvatar);
+			userRepository.save(user);
+		}
+		return newAvatar;
+	}
+
+	public void removeAvatar(String appId) {
+		User user = userRepository.getByAppId(appId);
+		if (user == null) {
+			throw new RuntimeException("user not found");
+		}
+		if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+			String blobName = user.getAvatar().replace(BLOB_URL_PREFIX + "/", "");
+			azureBlobService.removeFile("media", blobName);
+		}
+	}
+
 	public void deleteUser(String appId) {
 		User user = userRepository.getByAppId(appId);
 		checkUserExists(user);
@@ -192,6 +233,7 @@ public class UserService {
 		newUser.setAppId(appId);
 		newUser.setEmail(user.getEmail());
 		newUser.setDeleted(1);
+		removeAvatar(appId);
 		userRepository.save(newUser);
 	}
 
