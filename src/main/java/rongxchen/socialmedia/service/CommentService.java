@@ -120,9 +120,9 @@ public class CommentService {
 				.project("commentId", "content", "image", "postId", "parentId", "replyCommentId",
 						"likeCount", "authorId", "createTime", "userInfo.username as authorName",
 						"userInfo.avatar as authorAvatar", "commentCount")
+				.sort(sortField, order)
 				.skip(offset)
 				.limit(defaultCommentSize)
-				.sort(sortField, order)
 				.fetchResult("comments", CommentVO.class) : myMongoService
 						.lookup("users", "appId", "authorId", "userInfo")
 						.lookup("users", "appId", "replyCommentUserId", "replyCommentUser")
@@ -133,9 +133,9 @@ public class CommentService {
 								"likeCount", "authorId", "createTime", "userInfo.username as authorName",
 								"userInfo.avatar as authorAvatar", "commentCount",
 								"replyCommentUser.username as replyCommentUsername", "replyCommentUserId")
+						.sort(sortField, order)
 						.skip(offset)
 						.limit(defaultCommentSize)
-						.sort(sortField, order)
 						.fetchResult("comments", CommentVO.class);
 		for (CommentVO commentVO : commentList) {
 			commentVO.setCreateTime(DateUtil.convertToDisplayTime(commentVO.getCreateTime()));

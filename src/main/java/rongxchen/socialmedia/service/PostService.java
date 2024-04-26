@@ -121,6 +121,7 @@ public class PostService {
 				.project("postId", "title", "content", "imageList", "tagList", "authorId",
 						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
 						"likeCount", "favoriteCount", "commentCount", "createTime", "lastModifiedTime")
+				.sort("createTime", -1)
 				.skip(offset)
 				.limit(defaultSize)
 				.fetchResult("posts", PostVO.class);
@@ -135,7 +136,7 @@ public class PostService {
 		int defaultSize = 20;
 		List<PostVO> postVOList = myMongoService
 				.lookup("posts", "postId", "itemId", "postInfo")
-				.lookup("users", "appId", "userId", "userInfo")
+				.lookup("users", "appId", "itemOwnerId", "userInfo")
 				.unwind("postInfo")
 				.unwind("userInfo")
 				.match(Criteria.where("userId").is(userId)
@@ -146,7 +147,8 @@ public class PostService {
 						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
 						"postInfo.likeCount as likeCount", "postInfo.favoriteCount as favoriteCount",
 						"postInfo.commentCount as commentCount", "postInfo.createTime as createTime",
-						"postInfo.lastModifiedTime as lastModifiedTime")
+						"postInfo.lastModifiedTime as lastModifiedTime", "time")
+				.sort("time", -1)
 				.skip(offset)
 				.limit(defaultSize)
 				.fetchResult("collect_items", PostVO.class);
@@ -171,7 +173,7 @@ public class PostService {
 		return postVO;
 	}
 
-	public boolean collectPost(String postId, String action, String collectType, String userId) {
+	public boolean collectPost(String postId, String ownerId, String action, String collectType, String userId) {
 		Post post = postRepository.getByPostId(postId);
 		if (post == null) {
 			throw new IllegalArgumentException("post not exist");
@@ -189,9 +191,11 @@ public class PostService {
 			postRepository.save(post);
 			CollectItem item = new CollectItem();
 			item.setItemId(postId);
+			item.setItemOwnerId(ownerId);
 			item.setUserId(userId);
 			item.setItemType(collectType);
 			item.setItemMeta("post");
+			item.setTime(LocalDateTime.now());
 			collectItemRepository.save(item);
 		} else if ("cancel".equals(action)) {
 			switch (collectType) {

@@ -5,6 +5,9 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 /**
  * @author CHEN Rongxin
  */
@@ -22,5 +25,9 @@ public class CollectItem {
 	private String itemMeta;
 
 	private String itemType;
+
+	private String itemOwnerId;
+
+	private LocalDateTime time;
 
 }

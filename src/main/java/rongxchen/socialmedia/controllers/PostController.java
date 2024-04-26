@@ -54,17 +54,19 @@ public class PostController {
 
 	@PostMapping("/like-post")
 	public Result<Boolean> likePost(@RequestParam("postId") String postId,
+									@RequestParam("ownerId") String ownerId,
 									@RequestParam("action") String action,
 									@RequestAttribute String appId) {
-		boolean success = postService.collectPost(postId, action, "likes", appId);
+		boolean success = postService.collectPost(postId, ownerId, action, "likes", appId);
 		return Result.success(success);
 	}
 
 	@PostMapping("/favorite-post")
 	public Result<Boolean> favoritePost(@RequestParam("postId") String postId,
+										@RequestParam("ownerId") String ownerId,
 										@RequestParam("action") String action,
 										@RequestAttribute String appId) {
-		boolean success = postService.collectPost(postId, action, "favorites", appId);
+		boolean success = postService.collectPost(postId, ownerId, action, "favorites", appId);
 		return Result.success(success);
 	}
 

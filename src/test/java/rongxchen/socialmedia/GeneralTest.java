@@ -32,7 +32,7 @@ public class GeneralTest {
 
 	@Test
 	void test() {
-		List<PostVO> items = postService.getCollectedPostOfUser("259a002f790042928e918a2e60a013ee", "favorites", 0);
+		List<PostVO> items = postService.getCollectedPostOfUser("259a002f790042928e918a2e60a013ee", "likes", 0);
 		items.forEach(System.out::println);
 	}
 
