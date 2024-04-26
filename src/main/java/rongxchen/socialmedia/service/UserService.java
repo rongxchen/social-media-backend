@@ -208,9 +208,9 @@ public class UserService {
 		String newAvatar = BLOB_URL_PREFIX + "/" + blobName;
 		if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
 			removeAvatar(appId);
-			user.setAvatar(newAvatar);
-			userRepository.save(user);
 		}
+		user.setAvatar(newAvatar);
+		userRepository.save(user);
 		return newAvatar;
 	}
 
@@ -223,6 +223,8 @@ public class UserService {
 			String blobName = user.getAvatar().replace(BLOB_URL_PREFIX + "/", "");
 			azureBlobService.removeFile("media", blobName);
 		}
+		user.setAvatar("");
+		userRepository.save(user);
 	}
 
 	public void deleteUser(String appId) {
