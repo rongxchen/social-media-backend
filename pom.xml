@@ -18,6 +18,7 @@
         <maven.compiler.version>8</maven.compiler.version>
         <!--stable version of azure in springboot2-->
         <spring-cloud-azure.version>4.16.0</spring-cloud-azure.version>
+        <start-class>rongxchen.socialmedia.SocialMediaApplication</start-class>
     </properties>
 
     <dependencies>
