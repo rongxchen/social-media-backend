@@ -24,6 +24,7 @@ public class MQBody implements Serializable {
 		this.messageType = messageType;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T> T get(String key) {
 		return (T) data.getOrDefault(key, "");
 	}

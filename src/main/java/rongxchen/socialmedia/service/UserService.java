@@ -12,16 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import rongxchen.socialmedia.enums.RedisKey;
 import rongxchen.socialmedia.enums.UserRole;
-import rongxchen.socialmedia.message_queue.RocketMQProducer;
 import rongxchen.socialmedia.exceptions.AccountException;
 import rongxchen.socialmedia.exceptions.HttpException;
 import rongxchen.socialmedia.models.dto.UserDTO;
 import rongxchen.socialmedia.models.entity.Friend;
 import rongxchen.socialmedia.models.entity.User;
-import rongxchen.socialmedia.models.mq.MQBody;
 import rongxchen.socialmedia.models.vo.UserVO;
 import rongxchen.socialmedia.repository.FriendRepository;
-import rongxchen.socialmedia.repository.RedisRepository;
 import rongxchen.socialmedia.repository.UserRepository;
 import rongxchen.socialmedia.service.azure.AzureBlobService;
 import rongxchen.socialmedia.service.azure.AzureMailService;
@@ -53,18 +50,11 @@ public class UserService {
 	@Resource
 	private FriendRepository friendRepository;
 
-//	@Resource
-//	private RedisRepository redisRepository;
-
 	@Resource
 	private MongoTemplate mongoTemplate;
 
 	@Resource
 	private MyMongoService myMongoService;
-
-	// TODO
-//	@Resource
-//	RocketMQProducer rocketMQProducer;
 
 	@Resource
 	private AzureMailService azureMailService;
@@ -87,7 +77,6 @@ public class UserService {
 			user.setAppId(findUser.getAppId());
 		}
 		// check if code is correct
-//		String findCode = redisRepository.get(RedisKey.VERIFICATION_CODE.getCode(), userDto.getEmail());
 		Query query = new Query(Criteria.where("itemKey").is(RedisKey.VERIFICATION_CODE.getCode() + userDto.getEmail()));
 		List<Document> documents = mongoTemplate.find(query, Document.class, "sundries");
 		String findCode = documents.isEmpty() ? null : documents.get(0).getString("code");
@@ -98,7 +87,6 @@ public class UserService {
 			throw new AccountException("code unmatched");
 		}
 		// remove code from redis
-//		redisRepository.removeItem(RedisKey.VERIFICATION_CODE.getCode(), userDto.getEmail());
 		mongoTemplate.remove(documents.get(0), "sundries");
 		// set up basic info
 		user.setEmail(userDto.getEmail());
@@ -205,6 +193,7 @@ public class UserService {
 		userRepository.save(user);
 	}
 
+	@SuppressWarnings("null")
 	public String uploadAvatar(String appId, MultipartFile file) {
 		User user = userRepository.getByAppId(appId);
 		if (user == null) {
@@ -258,7 +247,6 @@ public class UserService {
 			throw new AccountException("email has been registered");
 		}
 		// find if the code existed already
-//		String findCode = redisRepository.get(RedisKey.VERIFICATION_CODE.getCode(), email);
 		Query query = new Query(Criteria.where("itemKey").is(RedisKey.VERIFICATION_CODE.getCode() + email));
 		List<Document> documents = mongoTemplate.find(query, Document.class, "sundries");
 		String findCode = documents.isEmpty() ? "" : documents.get(0).getString("code");
@@ -267,18 +255,10 @@ public class UserService {
 		}
 		// generate verification code and store in redis
 		String code = RandomCodeGenerator.generateVerificationCode();
-//		redisRepository.setItem(RedisKey.VERIFICATION_CODE.getCode(), email, code, 60 * 10);
 		Document document = new Document();
 		document.put("itemKey", RedisKey.VERIFICATION_CODE.getCode() + email);
 		document.put("code", code);
 		mongoTemplate.save(document, "sundries");
-		// set message meta for mq
-		// TODO
-//		MQBody mqBody = new MQBody("mail_verification_code");
-//		mqBody.add("email", email);
-//		mqBody.add("code", code);
-//		rocketMQProducer.sendMessage("azure-mail", mqBody);
-
 		azureMailService.sendVerificationCode(email, code);
 	}
 
@@ -287,14 +267,6 @@ public class UserService {
 		if (user == null) {
 			throw new AccountException("no such user");
 		}
-		// set message meta for mq
-		// TODO
-//		MQBody mqBody = new MQBody("mail_reset_password");
-//		mqBody.add("email", email);
-//		mqBody.add("appId", user.getAppId());
-//		mqBody.add("username", user.getUsername());
-//		rocketMQProducer.sendMessage("azure-mail", mqBody);
-
 		azureMailService.sendResetPassword(user.getAppId(), user.getUsername(), email);
 	}
 

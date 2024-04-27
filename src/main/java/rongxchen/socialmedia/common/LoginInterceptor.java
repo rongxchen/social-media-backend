@@ -21,6 +21,7 @@ import java.util.Map;
 public class LoginInterceptor implements HandlerInterceptor {
 
 	@Override
+	@SuppressWarnings("null")
 	public boolean preHandle(@NotNull HttpServletRequest request,
 							 @NotNull HttpServletResponse response,
 							 @NotNull Object handler) {

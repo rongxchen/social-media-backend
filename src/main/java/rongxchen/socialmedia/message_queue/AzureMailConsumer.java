@@ -3,7 +3,6 @@ package rongxchen.socialmedia.message_queue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.springframework.stereotype.Component;
 import rongxchen.socialmedia.models.mq.MQBody;
 import rongxchen.socialmedia.service.azure.AzureMailService;
 import rongxchen.socialmedia.utils.ObjectUtil;

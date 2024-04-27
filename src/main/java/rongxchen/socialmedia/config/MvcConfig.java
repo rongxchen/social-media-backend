@@ -17,6 +17,7 @@ import rongxchen.socialmedia.common.LoginInterceptor;
 public class MvcConfig implements WebMvcConfigurer {
 
 	@Override
+	@SuppressWarnings("null")
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(new LoginInterceptor())
 				.addPathPatterns("/**")
@@ -29,6 +30,7 @@ public class MvcConfig implements WebMvcConfigurer {
 	}
 
 	@Override
+	@SuppressWarnings("null")
 	public void addCorsMappings(CorsRegistry registry) {
 		registry.addMapping("/**")
 				.allowCredentials(true)

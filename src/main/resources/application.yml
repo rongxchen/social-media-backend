@@ -7,11 +7,6 @@ spring:
     mongodb:
       uri: "mongodb://social-media-cosmos-mongo:9UcSfM5HyVkDKU9zCtFN3SLih1vhhWr9Iie2RmPqcymX9Tr9TLFwXuK7rAVUjep9yYuGpmCWWnRnACDbtMVYjg==@social-media-cosmos-mongo.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@social-media-cosmos-mongo@" # mongodb://localhost:27017
       database: "my-social-media"
-  # redis
-#  redis:
-#    host: localhost
-#    port: 6379
-  # file upload settings
   servlet:
     multipart:
       max-file-size: 2MB
@@ -37,13 +32,3 @@ azure:
 
 frontend:
   url: "https://red-moss-07a653b0f.5.azurestaticapps.net" # "http://localhost:3000"
-
-#rocketmq:
-#  name-server: "localhost:9876"
-#  producer:
-#    group: "my-social-producer"
-#    send-message-timeout: 3000
-#    retry-times-when-send-failed: 0
-#    retry-times-when-send-async-failed: 0
-#  consumer:
-#    group: "my-social-consumer"

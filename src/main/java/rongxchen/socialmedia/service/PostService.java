@@ -42,16 +42,13 @@ public class PostService {
 	@Resource
 	private MyMongoService myMongoService;
 
-	// TODO
-//	@Resource
-//	private RocketMQProducer rocketMQProducer;
-
 	@Resource
 	private AzureBlobService azureBlobService;
 
 	@Value("${spring.cloud.azure.storage.blob.end-point}")
 	private String BLOB_URL_PREFIX;
 
+	@SuppressWarnings("null")
 	public String publishPost(MultipartFile[] files, String postJsonString, String appId) {
 		PostDTO postDTO = objectUtil.read(postJsonString, PostDTO.class);
 		String postId = UUIDGenerator.generate("post");
@@ -71,26 +68,17 @@ public class PostService {
 		post.setCreateTime(LocalDateTime.now());
 		post.setLastModifiedTime(LocalDateTime.now());
 		List<String> imageList = new ArrayList<>();
-//		List<MQBody> mqBodyList = new ArrayList<>();
-		// send message to azure blob service to upload media files
 		for (MultipartFile file : files) {
 			String suffix = Objects.requireNonNull(file.getOriginalFilename()).substring(file.getOriginalFilename().lastIndexOf("."));
 			String blobName = postId + "/" + UUIDGenerator.generate(true) + suffix;
 			String imageUrl = BLOB_URL_PREFIX + "media/" + blobName;
 			imageList.add(imageUrl);
-//			MQBody mqBody = new MQBody("blob_post_img");
-//			mqBody.add("blobName", blobName);
-//			mqBody.add("contentType", file.getContentType());
 			try {
-//				mqBody.addBytes("fileBytes", file.getBytes());
 				azureBlobService.uploadFile("media", blobName, file.getInputStream(), file.getContentType());
 			} catch (IOException e) {
 				throw new HttpException(HttpStatus.INTERNAL_SERVER_ERROR, "failed to read file bytes");
 			}
-//			mqBodyList.add(mqBody);
 		}
-		// TODO
-//		rocketMQProducer.sendMessage("post-media-upload", mqBodyList);
 		post.setImageList(imageList);
 		postRepository.save(post);
 		return postId;
@@ -238,11 +226,6 @@ public class PostService {
 		List<String> blobNames = post.getImageList()
 				.stream().map(x -> x.replace(BLOB_URL_PREFIX + "media/", ""))
 				.collect(Collectors.toList());
-		// TODO
-//		MQBody mqBody = new MQBody("blob_post_img");
-//		mqBody.add("imageList", blobNames);
-//		rocketMQProducer.sendMessage("post-media-delete", mqBody);
-
 		for (String blobName : blobNames) {
 			azureBlobService.removeFile("media", blobName);
 		}
