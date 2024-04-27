@@ -166,7 +166,9 @@ public class UserService {
 		userVO.setUsername(user.getUsername());
 		userVO.setAvatar(user.getAvatar());
 		userVO.setSex(user.getSex());
-		userVO.setAge((int) ChronoUnit.YEARS.between(user.getBirthday(), LocalDate.now()));
+		if (user.getBirthday() != null) {
+			userVO.setAge((int) ChronoUnit.YEARS.between(user.getBirthday(), LocalDate.now()));
+		}
 		userVO.setDescription(user.getDescription());
 		return userVO;
 	}
