@@ -11,13 +11,15 @@
 
     <groupId>rongxchen</groupId>
     <artifactId>SocialMedia</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+
+    <packaging>jar</packaging>
 
     <properties>
         <java.version>8</java.version>
         <maven.compiler.version>8</maven.compiler.version>
         <!--stable version of azure in springboot2-->
         <spring-cloud-azure.version>4.16.0</spring-cloud-azure.version>
+        <spring-boot.version>2.7.16</spring-boot.version>
     </properties>
 
     <dependencies>
@@ -29,7 +31,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <!-- <scope>test</scope> -->
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -92,6 +94,10 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
 </project>
