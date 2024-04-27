@@ -20,9 +20,6 @@ spring:
           account-key: "oLf39h+MuzrCIYwx7rNpnQJI98JHZVEabBqae20J4g332//va/2jvUpl/Lp4jTmaeorhprZaOPRZ+AStmcJf8A=="
           endpoint: "https://myappsocialmediastorage.blob.core.windows.net/"
 
-server:
-  port: 8080
-
 azure:
   communication:
     connection-string: "endpoint=https://social-media-communication.unitedstates.communication.azure.com/;accesskey=7nWIRT0fnwOiTtrcT0HXfEJAOYSHI5B8LoBumamq+X5O1ZiVlPMUuLR2zK989c4MvE2Ar+5OiXDL2u7UgD6bmw=="
