@@ -23,7 +23,7 @@ public class DateUtil {
 		long MINUTE = 60 * 1000;
 		long HOUR = MINUTE * 60;
 		long DAY = HOUR * 24;
-		long MONTH = DAY * 30;
+		long SEVEN_DAYS = DAY * 7;
 		LocalDateTime now = LocalDateTime.now();
 		long duration = ChronoUnit.MILLIS.between(localDateTime, now);
 		if (duration < MINUTE) {
@@ -37,7 +37,7 @@ public class DateUtil {
 			long hours = duration / HOUR;
 			return hours + (hours == 1 ? " hour ago" : " hours ago");
 		}
-		if (duration < MONTH) {
+		if (duration < SEVEN_DAYS) {
 			long days = duration / DAY;
 			return days + (days == 1 ? " day ago" : " days ago");
 		}
