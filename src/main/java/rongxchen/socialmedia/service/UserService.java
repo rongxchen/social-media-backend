@@ -62,6 +62,9 @@ public class UserService {
 	@Resource
 	private AzureBlobService azureBlobService;
 
+	@Resource
+	private NotificationService notificationService;
+
 	@Value("${spring.cloud.azure.storage.blob.end-point}")
 	private String BLOB_URL_PREFIX;
 
@@ -305,6 +308,8 @@ public class UserService {
 			friend.setFriendId(friendId);
 			friend.setFollowedByUserId(myId);
 			friendRepository.save(friend);
+			System.out.println("sending comment notification: " + friend);
+			notificationService.sendFollowsNotification(friend);
 		} else if ("unfollow".equals(action)) {
 			if (findFriend != null) {
 				friendRepository.delete(findFriend);

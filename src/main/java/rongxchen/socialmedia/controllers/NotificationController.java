@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.*;
 import rongxchen.socialmedia.common.annotations.LoginToken;
 import rongxchen.socialmedia.models.Result;
 import rongxchen.socialmedia.models.vo.notifications.CommentsNotificationVO;
+import rongxchen.socialmedia.models.vo.notifications.FollowsNotificationVO;
 import rongxchen.socialmedia.service.NotificationService;
 
 import javax.annotation.Resource;
@@ -21,10 +22,18 @@ public class NotificationController {
 	private NotificationService notificationService;
 
 	@GetMapping("/comments")
-	public Result<List<CommentsNotificationVO>> getNotifications(@RequestParam("skip") Long skip,
-																 @RequestParam(value = "limit", required = false, defaultValue = "20") Long limit,
-																 @RequestAttribute("appId") String appId) {
+	public Result<List<CommentsNotificationVO>> getCommentsNotifications(@RequestParam("skip") long skip,
+																		 @RequestParam(value = "limit", required = false, defaultValue = "20") long limit,
+																		 @RequestAttribute("appId") String appId) {
 		List<CommentsNotificationVO> notificationList = notificationService.getCommentsNotificationList(appId, skip, limit);
+		return Result.success(notificationList);
+	}
+
+	@GetMapping("/follows")
+	public Result<List<FollowsNotificationVO>> getFollowsNotifications(@RequestParam("skip") long skip,
+																	   @RequestParam(value = "limit", required = false, defaultValue = "20") long limit,
+																	   @RequestAttribute("appId") String appId) {
+		List<FollowsNotificationVO> notificationList = notificationService.getFollowsNotificationList(appId, skip, limit);
 		return Result.success(notificationList);
 	}
 

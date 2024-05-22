@@ -10,6 +10,8 @@ import lombok.EqualsAndHashCode;
 @Data
 public class FollowsNotificationVO extends NotificationVO {
 
+	private String appId;
+
 	private String fromUsername;
 
 	private String fromUserAvatar;

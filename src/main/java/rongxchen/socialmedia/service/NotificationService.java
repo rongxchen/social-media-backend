@@ -7,9 +7,12 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import rongxchen.socialmedia.enums.NotificationCategory;
 import rongxchen.socialmedia.models.entity.Comment;
+import rongxchen.socialmedia.models.entity.Friend;
 import rongxchen.socialmedia.models.entity.notifications.CommentsNotification;
+import rongxchen.socialmedia.models.entity.notifications.FollowsNotification;
 import rongxchen.socialmedia.models.entity.notifications.Notification;
 import rongxchen.socialmedia.models.vo.notifications.CommentsNotificationVO;
+import rongxchen.socialmedia.models.vo.notifications.FollowsNotificationVO;
 import rongxchen.socialmedia.repository.notifications.CommentsNotificationRepository;
 import rongxchen.socialmedia.repository.notifications.FollowsNotificationRepository;
 import rongxchen.socialmedia.repository.notifications.LikesNotificationRepository;
@@ -124,9 +127,9 @@ public class NotificationService {
 				.project("notificationId", "fromUserId", "toUserId", "dateTime", "read",
 						"isAuthor", "fromUser.username as fromUsername", "fromUser.avatar as fromUserAvatar",
 						"postId", "fromPost.title as postTitle", "parentId",  "fromComment.content as commentContent")
+				.sort("dateTime", -1)
 				.skip(skip)
 				.limit(limit)
-				.sort("dateTime", -1)
 				.fetchResult("notifications", CommentsNotificationVO.class);
 		for (CommentsNotificationVO notification : notifications) {
 			notification.setDateTime(DateUtil.convertToDisplayTime(notification.getDateTime()));
@@ -135,6 +138,55 @@ public class NotificationService {
 			}
 		}
 		return notifications;
+	}
+
+	public void sendFollowsNotification(Friend friend) {
+		FollowsNotification notification = new FollowsNotification();
+		notification.setNotificationId(generateUniqueId(NotificationCategory.FOLLOWS));
+		notification.setFromUserId(friend.getFollowedByUserId());
+		notification.setToUserId(friend.getFriendId());
+		notification.setAppId(friend.getFollowedByUserId());
+		notification.setDateTime(LocalDateTime.now());
+		followsNotificationRepository.save(notification);
+		FollowsNotificationVO notificationVO = getFollowsNotification(notification.getNotificationId());
+		WebsocketManager.sendTo(friend.getFriendId(), objectUtil.write(notificationVO));
+	}
+
+	public FollowsNotificationVO getFollowsNotification(String notificationId) {
+		FollowsNotificationVO notification = myMongoService
+				.match(Criteria.where("notificationId").is(notificationId)
+						.and("notificationCategory").is(NotificationCategory.FOLLOWS.getCategory()))
+				.lookup("users", "appId", "appId", "fromUser")
+				.unwind("fromUser", true)
+				.project("notificationId", "fromUserId", "toUserId", "dateTime", "read",
+						"fromUser.username as fromUsername", "fromUser.avatar as fromUserAvatar", "appId")
+				.fetchOne("notifications", FollowsNotificationVO.class);
+		notification.setDateTime(DateUtil.convertToDisplayTime(notification.getDateTime()));
+		if (notification.getAppId() == null) {
+			notification.setFromUsername("account deactivated");
+		}
+		return notification;
+	}
+
+	public List<FollowsNotificationVO> getFollowsNotificationList(String appId, long skip, long limit) {
+		List<FollowsNotificationVO> notificationList = myMongoService
+				.match(Criteria.where("toUserId").is(appId)
+						.and("notificationCategory").is(NotificationCategory.FOLLOWS.getCategory()))
+				.lookup("users", "appId", "appId", "fromUser")
+				.unwind("fromUser", true)
+				.project("notificationId", "fromUserId", "toUserId", "dateTime", "read",
+						"fromUser.username as fromUsername", "fromUser.avatar as fromUserAvatar", "appId")
+				.sort("dateTime", -1)
+				.skip(skip)
+				.limit(limit)
+				.fetchResult("notifications", FollowsNotificationVO.class);
+		for (FollowsNotificationVO notification : notificationList) {
+			notification.setDateTime(DateUtil.convertToDisplayTime(notification.getDateTime()));
+			if (notification.getAppId() == null) {
+				notification.setFromUsername("account deactivated");
+			}
+		}
+		return notificationList;
 	}
 
 	public void readList(String appId, String ids) {

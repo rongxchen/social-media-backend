@@ -109,6 +109,7 @@ public class CommentService {
 		if (comment.getReplyCommentUserId() != null
 				&& !"".equals(comment.getReplyCommentUserId().trim())
 				&& !comment.getReplyCommentUserId().equals(userId)) {
+			System.out.println("sending comment notification: " + comment);
 			notificationService.sendCommentsNotification(comment, comment.getAuthorId().equals(post.getAuthorId()));
 		}
 		return commentVO;
