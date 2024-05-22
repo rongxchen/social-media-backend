@@ -47,7 +47,8 @@ public class CommentService {
 	@Resource
 	private AzureBlobService azureBlobService;
 
-	private final String BLOB_URL_PREFIX = "https://mysocialmediastorage.blob.core.windows.net/media";
+	@Resource
+	private NotificationService notificationService;
 
 	public CommentVO addComment(CommentDTO commentDTO, String userId) {
 		// convert and store
@@ -104,6 +105,13 @@ public class CommentService {
 		// set user info
 		commentVO.setAuthorName(user.getUsername());
 		commentVO.setAuthorAvatar(user.getAvatar());
+		// send notification
+		if (comment.getReplyCommentId() != null
+				&& !"".equals(comment.getReplyCommentId().trim())
+				&& comment.getReplyCommentUserId() != null
+				&& !"".equals(comment.getReplyCommentUserId().trim())) {
+			notificationService.sendCommentsNotification(comment, comment.getAuthorId().equals(post.getAuthorId()));
+		}
 		return commentVO;
 	}
 
@@ -186,6 +194,7 @@ public class CommentService {
 		}
 		// delete image if any
 		if (comment.getImage() != null && !comment.getImage().isEmpty()) {
+			String BLOB_URL_PREFIX = "https://mysocialmediastorage.blob.core.windows.net/media";
 			String blobName = comment.getImage().replace(BLOB_URL_PREFIX + "/", "");
 			azureBlobService.removeFile("media", blobName);
 		}

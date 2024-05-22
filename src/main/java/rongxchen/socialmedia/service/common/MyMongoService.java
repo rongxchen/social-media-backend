@@ -45,6 +45,19 @@ public class MyMongoService {
 		return this;
 	}
 
+	public MyMongoService conditionalIfNull(String field, String as, String notNullValue, String nullValue) {
+		ConditionalOperators.Cond cond = ConditionalOperators.Cond.newBuilder()
+				.when(ConditionalOperators.IfNull.ifNull(field).then(nullValue))
+				.then(nullValue).otherwise(notNullValue);
+		for (AggregationOperation operation : aggregationOperationList) {
+			if (operation instanceof ProjectionOperation) {
+				((ProjectionOperation) operation).and(cond).as(as);
+				break;
+			}
+		}
+		return this;
+	}
+
 	public MyMongoService lookup(String foreignCollection,
 								 String foreignField,
 								 String localField,
@@ -58,10 +71,14 @@ public class MyMongoService {
 		return this;
 	}
 
-	public MyMongoService unwind(String result) {
-		UnwindOperation unwindOperation = Aggregation.unwind(result);
+	public MyMongoService unwind(String result, boolean preserveNullAndEmptyArrays) {
+		UnwindOperation unwindOperation = Aggregation.unwind(result, preserveNullAndEmptyArrays);
 		aggregationOperationList.add(unwindOperation);
 		return this;
+	}
+
+	public MyMongoService unwind(String result) {
+		return unwind(result, false);
 	}
 
 	public MyMongoService skip(long skipCount) {
