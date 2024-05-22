@@ -106,10 +106,9 @@ public class CommentService {
 		commentVO.setAuthorName(user.getUsername());
 		commentVO.setAuthorAvatar(user.getAvatar());
 		// send notification
-		if (comment.getReplyCommentId() != null
-				&& !"".equals(comment.getReplyCommentId().trim())
-				&& comment.getReplyCommentUserId() != null
-				&& !"".equals(comment.getReplyCommentUserId().trim())) {
+		if (comment.getReplyCommentUserId() != null
+				&& !"".equals(comment.getReplyCommentUserId().trim())
+				&& !comment.getReplyCommentUserId().equals(userId)) {
 			notificationService.sendCommentsNotification(comment, comment.getAuthorId().equals(post.getAuthorId()));
 		}
 		return commentVO;
