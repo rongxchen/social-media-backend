@@ -5,6 +5,7 @@ import rongxchen.socialmedia.common.annotations.LoginToken;
 import rongxchen.socialmedia.models.Result;
 import rongxchen.socialmedia.models.vo.notifications.CommentsNotificationVO;
 import rongxchen.socialmedia.models.vo.notifications.FollowsNotificationVO;
+import rongxchen.socialmedia.models.vo.notifications.LikesNotificationVO;
 import rongxchen.socialmedia.service.NotificationService;
 
 import javax.annotation.Resource;
@@ -34,6 +35,14 @@ public class NotificationController {
 																	   @RequestParam(value = "limit", required = false, defaultValue = "20") long limit,
 																	   @RequestAttribute("appId") String appId) {
 		List<FollowsNotificationVO> notificationList = notificationService.getFollowsNotificationList(appId, skip, limit);
+		return Result.success(notificationList);
+	}
+
+	@GetMapping("/likes")
+	public Result<List<LikesNotificationVO>> getLikesNotifications(@RequestParam("skip") long skip,
+																   @RequestParam(value = "limit", required = false, defaultValue = "20") long limit,
+																   @RequestAttribute("appId") String appId) {
+		List<LikesNotificationVO> notificationList = notificationService.getLikesNotificationList(appId, skip, limit);
 		return Result.success(notificationList);
 	}
 

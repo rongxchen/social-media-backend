@@ -170,6 +170,7 @@ public class CommentService {
 		if ("collect".equals(action)) {
 			comment.setLikeCount(comment.getLikeCount()+1);
 			commentRepository.save(comment);
+			notificationService.sendLikeCommentNotification(comment, userId);
 			CollectItem item = new CollectItem();
 			item.setItemId(commentId);
 			item.setUserId(userId);

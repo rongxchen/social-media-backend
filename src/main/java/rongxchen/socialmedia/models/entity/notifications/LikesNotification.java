@@ -15,6 +15,8 @@ public class LikesNotification extends Notification {
 
     private String postId;
 
+    private String action;
+
     private String itemType;
 
     private String itemId;

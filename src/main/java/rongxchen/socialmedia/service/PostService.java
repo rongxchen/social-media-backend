@@ -45,6 +45,9 @@ public class PostService {
 	@Resource
 	private AzureBlobService azureBlobService;
 
+	@Resource
+	private NotificationService notificationService;
+
 	@Value("${spring.cloud.azure.storage.blob.end-point}")
 	private String BLOB_URL_PREFIX;
 
@@ -172,10 +175,13 @@ public class PostService {
 			switch (collectType) {
 				case "likes": {
 					post.setLikeCount(post.getLikeCount()+1);
+					notificationService.sendLikePostNotification(post, "likes", userId);
 					break;
 				}
 				case "favorites": {
 					post.setFavoriteCount(post.getFavoriteCount()+1);
+					notificationService.sendLikePostNotification(post, "favorites", userId);
+					break;
 				}
 			}
 			postRepository.save(post);

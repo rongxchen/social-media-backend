@@ -45,14 +45,15 @@ public class MyMongoService {
 		return this;
 	}
 
-	public MyMongoService conditionalIfNull(String field, String as, String notNullValue, String nullValue) {
-		ConditionalOperators.Cond cond = ConditionalOperators.Cond.newBuilder()
-				.when(ConditionalOperators.IfNull.ifNull(field).then(nullValue))
-				.then(nullValue).otherwise(notNullValue);
-		for (AggregationOperation operation : aggregationOperationList) {
-			if (operation instanceof ProjectionOperation) {
-				((ProjectionOperation) operation).and(cond).as(as);
-				break;
+	public MyMongoService conditionalIfNull(String ifNullRes, String ifNullVal,
+											String ifNotNullRes, String ifNotNullVal,
+											String as) {
+		ConditionalOperators.Cond cond = ConditionalOperators.when(Criteria.where(ifNullRes).isNull())
+				.thenValueOf(String.format("%s.%s", ifNotNullRes, ifNotNullVal))
+				.otherwiseValueOf(String.format("%s.%s", ifNullRes, ifNullVal));
+		for (int i = 0; i < aggregationOperationList.size(); i++) {
+			if (aggregationOperationList.get(i) instanceof ProjectionOperation) {
+				aggregationOperationList.set(i, ((ProjectionOperation) aggregationOperationList.get(i)).and(cond).as(as));
 			}
 		}
 		return this;

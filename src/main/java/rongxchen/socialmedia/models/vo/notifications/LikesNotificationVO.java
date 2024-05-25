@@ -10,7 +10,13 @@ import lombok.EqualsAndHashCode;
 @Data
 public class LikesNotificationVO extends NotificationVO {
 
+	private String fromUsername;
+
+	private String fromUserAvatar;
+
 	private String postId;
+
+	private String action;
 
 	private String itemType;
 
