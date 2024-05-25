@@ -20,6 +20,8 @@ import rongxchen.socialmedia.models.vo.notifications.LikesNotificationVO;
 import rongxchen.socialmedia.repository.notifications.CommentsNotificationRepository;
 import rongxchen.socialmedia.repository.notifications.FollowsNotificationRepository;
 import rongxchen.socialmedia.repository.notifications.LikesNotificationRepository;
+import rongxchen.socialmedia.service.common.MongoAggregation;
+import rongxchen.socialmedia.service.common.MongoAggregationBuilder;
 import rongxchen.socialmedia.service.common.MyMongoService;
 import rongxchen.socialmedia.utils.DateUtil;
 import rongxchen.socialmedia.utils.ObjectUtil;
@@ -100,7 +102,7 @@ public class NotificationService {
 	}
 
 	public CommentsNotificationVO getCommentsNotification(String notificationId) {
-		CommentsNotificationVO notification = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.match(Criteria.where("notificationId").is(notificationId)
 						.and("notificationCategory").is(NotificationCategory.COMMENTS.getCategory())
 				)
@@ -113,8 +115,8 @@ public class NotificationService {
 				.project("notificationId", "fromUserId", "toUserId", "dateTime", "read",
 						"isAuthor", "fromUser.username as fromUsername", "fromUser.avatar as fromUserAvatar",
 						"postId", "fromPost.title as postTitle", "parentId", "fromComment.content as commentContent")
-				.fetchOne("notifications", CommentsNotificationVO.class);
-
+				.build();
+		CommentsNotificationVO notification = myMongoService.fetchOne(aggregation, "notifications", CommentsNotificationVO.class);
 		if (notification != null) {
 			notification.setDateTime(DateUtil.convertToDisplayTime(notification.getDateTime()));
 			if (notification.getCommentContent() == null) {
@@ -125,7 +127,7 @@ public class NotificationService {
 	}
 
 	public List<CommentsNotificationVO> getCommentsNotificationList(String appId, long skip, long limit) {
-		List<CommentsNotificationVO> notifications = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.match(Criteria.where("toUserId").is(appId)
 						.and("notificationCategory").is(NotificationCategory.COMMENTS.getCategory()))
 				.lookup("users", "appId", "fromUserId", "fromUser")
@@ -136,11 +138,12 @@ public class NotificationService {
 				.unwind("fromComment", true)
 				.project("notificationId", "fromUserId", "toUserId", "dateTime", "read",
 						"isAuthor", "fromUser.username as fromUsername", "fromUser.avatar as fromUserAvatar",
-						"postId", "fromPost.title as postTitle", "parentId",  "fromComment.content as commentContent")
+						"postId", "fromPost.title as postTitle", "parentId", "fromComment.content as commentContent")
 				.sort("dateTime", -1)
 				.skip(skip)
-				.limit(limit)
-				.fetchResult("notifications", CommentsNotificationVO.class);
+				.limit(limit);
+
+		List<CommentsNotificationVO> notifications = myMongoService.fetchResult(aggregation, "notifications", CommentsNotificationVO.class);
 		for (CommentsNotificationVO notification : notifications) {
 			notification.setDateTime(DateUtil.convertToDisplayTime(notification.getDateTime()));
 			if (notification.getCommentContent() == null) {
@@ -165,14 +168,14 @@ public class NotificationService {
 	}
 
 	public FollowsNotificationVO getFollowsNotification(String notificationId) {
-		FollowsNotificationVO notification = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.match(Criteria.where("notificationId").is(notificationId)
 						.and("notificationCategory").is(NotificationCategory.FOLLOWS.getCategory()))
 				.lookup("users", "appId", "appId", "fromUser")
 				.unwind("fromUser", true)
 				.project("notificationId", "fromUserId", "toUserId", "dateTime", "read",
-						"fromUser.username as fromUsername", "fromUser.avatar as fromUserAvatar", "appId")
-				.fetchOne("notifications", FollowsNotificationVO.class);
+						"fromUser.username as fromUsername", "fromUser.avatar as fromUserAvatar", "appId");
+		FollowsNotificationVO notification = myMongoService.fetchOne(aggregation, "notifications", FollowsNotificationVO.class);
 		if (notification != null) {
 			notification.setDateTime(DateUtil.convertToDisplayTime(notification.getDateTime()));
 			if (notification.getAppId() == null) {
@@ -183,7 +186,7 @@ public class NotificationService {
 	}
 
 	public List<FollowsNotificationVO> getFollowsNotificationList(String appId, long skip, long limit) {
-		List<FollowsNotificationVO> notificationList = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.match(Criteria.where("toUserId").is(appId)
 						.and("notificationCategory").is(NotificationCategory.FOLLOWS.getCategory()))
 				.lookup("users", "appId", "appId", "fromUser")
@@ -192,8 +195,8 @@ public class NotificationService {
 						"fromUser.username as fromUsername", "fromUser.avatar as fromUserAvatar", "appId")
 				.sort("dateTime", -1)
 				.skip(skip)
-				.limit(limit)
-				.fetchResult("notifications", FollowsNotificationVO.class);
+				.limit(limit);
+		List<FollowsNotificationVO> notificationList = myMongoService.fetchResult(aggregation, "notifications", FollowsNotificationVO.class);
 		for (FollowsNotificationVO notification : notificationList) {
 			notification.setDateTime(DateUtil.convertToDisplayTime(notification.getDateTime()));
 			if (notification.getAppId() == null) {
@@ -238,7 +241,7 @@ public class NotificationService {
 	}
 
 	public LikesNotificationVO getLikesNotification(String notificationId) {
-		LikesNotificationVO notification = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.match(Criteria.where("notificationId").is(notificationId)
 						.and("notificationCategory").is(NotificationCategory.LIKES.getCategory()))
 				.lookup("users", "appId", "fromUserId", "fromUser")
@@ -252,8 +255,8 @@ public class NotificationService {
 				.project("notificationId", "fromUserId", "toUserId", "dateTime", "read",
 						"fromUser.username as fromUsername", "fromUser.avatar as fromUserAvatar",
 						"fromPost.postId as postId", "action", "itemType", "itemId")
-				.conditionalIfNull("itemPost", "title", "itemComment", "content", "content")
-				.fetchOne("notifications", LikesNotificationVO.class);
+				.conditionalIfNull("itemPost", "title", "itemComment", "content", "content");
+		LikesNotificationVO notification = myMongoService.fetchOne(aggregation, "notifications", LikesNotificationVO.class);
 		if (notification != null) {
 			notification.setDateTime(DateUtil.convertToDisplayTime(notification.getDateTime()));
 			if (notification.getContent() == null) {
@@ -267,7 +270,7 @@ public class NotificationService {
 	}
 
 	public List<LikesNotificationVO> getLikesNotificationList(String appId, long skip, long limit) {
-		List<LikesNotificationVO> notifications = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.match(Criteria.where("toUserId").is(appId)
 						.and("notificationCategory").is(NotificationCategory.LIKES.getCategory()))
 				.lookup("users", "appId", "fromUserId", "fromUser")
@@ -284,8 +287,8 @@ public class NotificationService {
 				.conditionalIfNull("itemPost", "title", "itemComment", "content", "content")
 				.sort("dateTime", -1)
 				.skip(skip)
-				.limit(limit)
-				.fetchResult("notifications", LikesNotificationVO.class);
+				.limit(limit);
+		List<LikesNotificationVO> notifications = myMongoService.fetchResult(aggregation, "notifications", LikesNotificationVO.class);
 		// handle missing content for comments
 		Map<String, String> missingCommentContent = findMissingCommentContent(notifications);
 		for (LikesNotificationVO notification : notifications) {
@@ -305,10 +308,10 @@ public class NotificationService {
 		List<String> idList = notificationList.stream()
 				.filter(x -> x.getContent() == null)
 				.map(LikesNotificationVO::getItemId).collect(Collectors.toList());
-		List<Document> documents = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.match(Criteria.where("commentId").in(idList))
-				.project("commentId", "content")
-				.fetchResult("comments", Document.class);
+				.project("commentId", "content");
+		List<Document> documents = myMongoService.fetchResult(aggregation, "comments", Document.class);
 		return documents.stream().collect(Collectors.toMap(
 				x -> x.getString("commentId"),
 				x -> x.getString("content")));

@@ -13,6 +13,8 @@ import rongxchen.socialmedia.models.vo.PostVO;
 import rongxchen.socialmedia.repository.CollectItemRepository;
 import rongxchen.socialmedia.repository.PostRepository;
 import rongxchen.socialmedia.service.azure.AzureBlobService;
+import rongxchen.socialmedia.service.common.MongoAggregation;
+import rongxchen.socialmedia.service.common.MongoAggregationBuilder;
 import rongxchen.socialmedia.service.common.MyMongoService;
 import rongxchen.socialmedia.utils.DateUtil;
 import rongxchen.socialmedia.utils.ObjectUtil;
@@ -89,15 +91,15 @@ public class PostService {
 
 	public List<PostVO> getPostByPage(Integer offset) {
 		int defaultSize = 20;
-		List<PostVO> postVOList = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.lookup("users", "appId", "authorId", "userInfo")
 				.unwind("userInfo")
 				.project("postId", "title", "content", "imageList", "tagList", "authorId",
 						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
 						"likeCount", "favoriteCount", "commentCount", "createTime", "lastModifiedTime")
 				.skip(offset)
-				.limit(defaultSize)
-				.fetchResult("posts", PostVO.class);
+				.limit(defaultSize);
+		List<PostVO> postVOList = myMongoService.fetchResult(aggregation, "posts", PostVO.class);
 		for (PostVO postVO : postVOList) {
 			postVO.setCreateTime(DateUtil.convertToDisplayTime(postVO.getCreateTime()));
 			postVO.setLastModifiedTime(DateUtil.convertToDisplayTime(postVO.getLastModifiedTime()));
@@ -107,7 +109,7 @@ public class PostService {
 
 	public List<PostVO> getPostOfUser(String userId, Integer offset) {
 		int defaultSize = 20;
-		List<PostVO> postVOList = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.lookup("users", "appId", "authorId", "userInfo")
 				.unwind("userInfo")
 				.match(Criteria.where("authorId").is(userId))
@@ -116,8 +118,8 @@ public class PostService {
 						"likeCount", "favoriteCount", "commentCount", "createTime", "lastModifiedTime")
 				.sort("createTime", -1)
 				.skip(offset)
-				.limit(defaultSize)
-				.fetchResult("posts", PostVO.class);
+				.limit(defaultSize);
+		List<PostVO> postVOList = myMongoService.fetchResult(aggregation, "posts", PostVO.class);
 		for (PostVO postVO : postVOList) {
 			postVO.setCreateTime(DateUtil.convertToDisplayTime(postVO.getCreateTime()));
 			postVO.setLastModifiedTime(DateUtil.convertToDisplayTime(postVO.getLastModifiedTime()));
@@ -127,7 +129,7 @@ public class PostService {
 
 	public List<PostVO> getCollectedPostOfUser(String userId, String itemType, Integer offset) {
 		int defaultSize = 20;
-		List<PostVO> postVOList = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.lookup("posts", "postId", "itemId", "postInfo")
 				.lookup("users", "appId", "itemOwnerId", "userInfo")
 				.unwind("postInfo")
@@ -143,8 +145,8 @@ public class PostService {
 						"postInfo.lastModifiedTime as lastModifiedTime", "time")
 				.sort("time", -1)
 				.skip(offset)
-				.limit(defaultSize)
-				.fetchResult("collect_items", PostVO.class);
+				.limit(defaultSize);
+		List<PostVO> postVOList = myMongoService.fetchResult(aggregation, "collect_items", PostVO.class);
 		for (PostVO postVO : postVOList) {
 			postVO.setCreateTime(DateUtil.convertToDisplayTime(postVO.getCreateTime()));
 			postVO.setLastModifiedTime(DateUtil.convertToDisplayTime(postVO.getLastModifiedTime()));
@@ -153,14 +155,14 @@ public class PostService {
 	}
 
 	public PostVO getPostByPostId(String postId) {
-		PostVO postVO = myMongoService
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
 				.lookup("users", "appId", "authorId", "userInfo")
 				.unwind("userInfo")
 				.match(Criteria.where("postId").is(postId))
 				.project("postId", "title", "content", "imageList", "tagList", "authorId",
 						"userInfo.username as authorName", "userInfo.avatar as authorAvatar",
-						"likeCount", "favoriteCount", "commentCount", "createTime", "lastModifiedTime")
-				.fetchOne("posts", PostVO.class);
+						"likeCount", "favoriteCount", "commentCount", "createTime", "lastModifiedTime");
+		PostVO postVO = myMongoService.fetchOne(aggregation, "posts", PostVO.class);
 		postVO.setCreateTime(DateUtil.convertToDisplayTime(postVO.getCreateTime()));
 		postVO.setLastModifiedTime(DateUtil.convertToDisplayTime(postVO.getLastModifiedTime()));
 		return postVO;

@@ -22,6 +22,8 @@ import rongxchen.socialmedia.repository.FriendRepository;
 import rongxchen.socialmedia.repository.UserRepository;
 import rongxchen.socialmedia.service.azure.AzureBlobService;
 import rongxchen.socialmedia.service.azure.AzureMailService;
+import rongxchen.socialmedia.service.common.MongoAggregation;
+import rongxchen.socialmedia.service.common.MongoAggregationBuilder;
 import rongxchen.socialmedia.service.common.MyMongoService;
 import rongxchen.socialmedia.utils.*;
 
@@ -352,24 +354,26 @@ public class UserService {
 
 	public List<UserVO.SimpleUserVO> getFollowsList(String userId, int offset) {
 		int defaultSize = 20;
-		return myMongoService.lookup("users", "appId", "friendId", "friendInfo")
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
+				.lookup("users", "appId", "friendId", "friendInfo")
 				.unwind("friendInfo")
 				.match(Criteria.where("followedByUserId").is(userId))
 				.project("friendInfo.username as username", "friendInfo.avatar as avatar", "friendId as appId")
 				.skip(offset)
-				.limit(defaultSize)
-				.fetchResult("friends", UserVO.SimpleUserVO.class);
+				.limit(defaultSize);
+		return myMongoService.fetchResult(aggregation, "friends", UserVO.SimpleUserVO.class);
 	}
 
 	public List<UserVO.SimpleUserVO> getFollowersList(String userId, int offset) {
 		int defaultSize = 20;
-		return myMongoService.lookup("users", "appId", "followedByUserId", "friendInfo")
+		MongoAggregation aggregation = MongoAggregationBuilder.newBuilder()
+				.lookup("users", "appId", "followedByUserId", "friendInfo")
 				.unwind("friendInfo")
 				.match(Criteria.where("friendId").is(userId))
 				.project("friendInfo.username as username", "friendInfo.avatar as avatar", "followedByUserId as appId")
 				.skip(offset)
-				.limit(defaultSize)
-				.fetchResult("friends", UserVO.SimpleUserVO.class);
+				.limit(defaultSize);
+		return myMongoService.fetchResult(aggregation, "friends", UserVO.SimpleUserVO.class);
 	}
 
 }

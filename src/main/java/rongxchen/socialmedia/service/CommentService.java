@@ -13,6 +13,8 @@ import rongxchen.socialmedia.repository.CommentRepository;
 import rongxchen.socialmedia.repository.PostRepository;
 import rongxchen.socialmedia.repository.UserRepository;
 import rongxchen.socialmedia.service.azure.AzureBlobService;
+import rongxchen.socialmedia.service.common.MongoAggregation;
+import rongxchen.socialmedia.service.common.MongoAggregationBuilder;
 import rongxchen.socialmedia.service.common.MyMongoService;
 import rongxchen.socialmedia.utils.DateUtil;
 import rongxchen.socialmedia.utils.UUIDGenerator;
@@ -121,7 +123,7 @@ public class CommentService {
 											  Integer order,
 											  Integer offset) {
 		int defaultCommentSize = 8;
-		List<CommentVO> commentList = postId.equals(parentId) ? myMongoService
+		MongoAggregation aggregation = postId.equals(parentId) ? MongoAggregationBuilder.newBuilder()
 				.lookup("users", "appId", "authorId", "userInfo")
 				.unwind("userInfo")
 				.match(Criteria.where("postId").is(postId).and("parentId").is(parentId))
@@ -130,8 +132,7 @@ public class CommentService {
 						"userInfo.avatar as authorAvatar", "commentCount")
 				.sort(sortField, order)
 				.skip(offset)
-				.limit(defaultCommentSize)
-				.fetchResult("comments", CommentVO.class) : myMongoService
+				.limit(defaultCommentSize) : MongoAggregationBuilder.newBuilder()
 						.lookup("users", "appId", "authorId", "userInfo")
 						.lookup("users", "appId", "replyCommentUserId", "replyCommentUser")
 						.unwind("userInfo")
@@ -143,8 +144,8 @@ public class CommentService {
 								"replyCommentUser.username as replyCommentUsername", "replyCommentUserId")
 						.sort(sortField, order)
 						.skip(offset)
-						.limit(defaultCommentSize)
-						.fetchResult("comments", CommentVO.class);
+						.limit(defaultCommentSize);
+		List<CommentVO> commentList = myMongoService.fetchResult(aggregation, "comments", CommentVO.class);
 		for (CommentVO commentVO : commentList) {
 			commentVO.setCreateTime(DateUtil.convertToDisplayTime(commentVO.getCreateTime()));
 		}
