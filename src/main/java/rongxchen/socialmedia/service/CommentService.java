@@ -13,9 +13,9 @@ import rongxchen.socialmedia.repository.CommentRepository;
 import rongxchen.socialmedia.repository.PostRepository;
 import rongxchen.socialmedia.repository.UserRepository;
 import rongxchen.socialmedia.service.azure.AzureBlobService;
-import rongxchen.socialmedia.service.common.MongoAggregation;
-import rongxchen.socialmedia.service.common.MongoAggregationBuilder;
-import rongxchen.socialmedia.service.common.MyMongoService;
+import rongxchen.socialmedia.service.mongo_aggregation.MongoAggregation;
+import rongxchen.socialmedia.service.mongo_aggregation.MongoAggregationBuilder;
+import rongxchen.socialmedia.service.mongo_aggregation.MyMongoService;
 import rongxchen.socialmedia.utils.DateUtil;
 import rongxchen.socialmedia.utils.UUIDGenerator;
 
@@ -171,7 +171,9 @@ public class CommentService {
 		if ("collect".equals(action)) {
 			comment.setLikeCount(comment.getLikeCount()+1);
 			commentRepository.save(comment);
-			notificationService.sendLikeCommentNotification(comment, userId);
+			if (!comment.getAuthorId().equals(userId)) {
+				notificationService.sendLikeCommentNotification(comment, userId);
+			}
 			CollectItem item = new CollectItem();
 			item.setItemId(commentId);
 			item.setUserId(userId);

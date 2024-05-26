@@ -13,9 +13,9 @@ import rongxchen.socialmedia.models.vo.PostVO;
 import rongxchen.socialmedia.repository.CollectItemRepository;
 import rongxchen.socialmedia.repository.PostRepository;
 import rongxchen.socialmedia.service.azure.AzureBlobService;
-import rongxchen.socialmedia.service.common.MongoAggregation;
-import rongxchen.socialmedia.service.common.MongoAggregationBuilder;
-import rongxchen.socialmedia.service.common.MyMongoService;
+import rongxchen.socialmedia.service.mongo_aggregation.MongoAggregation;
+import rongxchen.socialmedia.service.mongo_aggregation.MongoAggregationBuilder;
+import rongxchen.socialmedia.service.mongo_aggregation.MyMongoService;
 import rongxchen.socialmedia.utils.DateUtil;
 import rongxchen.socialmedia.utils.ObjectUtil;
 import rongxchen.socialmedia.utils.UUIDGenerator;
@@ -177,12 +177,16 @@ public class PostService {
 			switch (collectType) {
 				case "likes": {
 					post.setLikeCount(post.getLikeCount()+1);
-					notificationService.sendLikePostNotification(post, "likes", userId);
+					if (!ownerId.equals(userId)) {
+						notificationService.sendLikePostNotification(post, "likes", userId);
+					}
 					break;
 				}
 				case "favorites": {
 					post.setFavoriteCount(post.getFavoriteCount()+1);
-					notificationService.sendLikePostNotification(post, "favorites", userId);
+					if (!ownerId.equals(userId)) {
+						notificationService.sendLikePostNotification(post, "favorites", userId);
+					}
 					break;
 				}
 			}
@@ -198,11 +202,11 @@ public class PostService {
 		} else if ("cancel".equals(action)) {
 			switch (collectType) {
 				case "likes": {
-					post.setLikeCount(post.getLikeCount()-1);
+					post.setLikeCount(Math.max(post.getLikeCount()-1, 0));
 					break;
 				}
 				case "favorites": {
-					post.setFavoriteCount(post.getFavoriteCount()-1);
+					post.setFavoriteCount(Math.max(post.getFavoriteCount()-1, 0));
 				}
 			}
 			postRepository.save(post);

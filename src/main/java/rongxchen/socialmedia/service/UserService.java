@@ -22,9 +22,9 @@ import rongxchen.socialmedia.repository.FriendRepository;
 import rongxchen.socialmedia.repository.UserRepository;
 import rongxchen.socialmedia.service.azure.AzureBlobService;
 import rongxchen.socialmedia.service.azure.AzureMailService;
-import rongxchen.socialmedia.service.common.MongoAggregation;
-import rongxchen.socialmedia.service.common.MongoAggregationBuilder;
-import rongxchen.socialmedia.service.common.MyMongoService;
+import rongxchen.socialmedia.service.mongo_aggregation.MongoAggregation;
+import rongxchen.socialmedia.service.mongo_aggregation.MongoAggregationBuilder;
+import rongxchen.socialmedia.service.mongo_aggregation.MyMongoService;
 import rongxchen.socialmedia.utils.*;
 
 import javax.annotation.Resource;
@@ -310,8 +310,10 @@ public class UserService {
 			friend.setFriendId(friendId);
 			friend.setFollowedByUserId(myId);
 			friendRepository.save(friend);
-			System.out.println("sending comment notification: " + friend);
-			notificationService.sendFollowsNotification(friend);
+			if (!friendId.equals(myId)) {
+				System.out.println("sending comment notification: " + friend);
+				notificationService.sendFollowsNotification(friend);
+			}
 		} else if ("unfollow".equals(action)) {
 			if (findFriend != null) {
 				friendRepository.delete(findFriend);

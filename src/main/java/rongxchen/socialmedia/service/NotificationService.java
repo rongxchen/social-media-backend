@@ -14,17 +14,17 @@ import rongxchen.socialmedia.models.entity.notifications.CommentsNotification;
 import rongxchen.socialmedia.models.entity.notifications.FollowsNotification;
 import rongxchen.socialmedia.models.entity.notifications.LikesNotification;
 import rongxchen.socialmedia.models.entity.notifications.Notification;
+import rongxchen.socialmedia.models.vo.SocketMessageEntity;
 import rongxchen.socialmedia.models.vo.notifications.CommentsNotificationVO;
 import rongxchen.socialmedia.models.vo.notifications.FollowsNotificationVO;
 import rongxchen.socialmedia.models.vo.notifications.LikesNotificationVO;
 import rongxchen.socialmedia.repository.notifications.CommentsNotificationRepository;
 import rongxchen.socialmedia.repository.notifications.FollowsNotificationRepository;
 import rongxchen.socialmedia.repository.notifications.LikesNotificationRepository;
-import rongxchen.socialmedia.service.common.MongoAggregation;
-import rongxchen.socialmedia.service.common.MongoAggregationBuilder;
-import rongxchen.socialmedia.service.common.MyMongoService;
+import rongxchen.socialmedia.service.mongo_aggregation.MongoAggregation;
+import rongxchen.socialmedia.service.mongo_aggregation.MongoAggregationBuilder;
+import rongxchen.socialmedia.service.mongo_aggregation.MyMongoService;
 import rongxchen.socialmedia.utils.DateUtil;
-import rongxchen.socialmedia.utils.ObjectUtil;
 import rongxchen.socialmedia.utils.UUIDGenerator;
 import rongxchen.socialmedia.utils.WebsocketManager;
 
@@ -50,9 +50,6 @@ public class NotificationService {
 	@Resource
 	private CommentsNotificationRepository commentsNotificationRepository;
 
-	@Resource
-	private ObjectUtil objectUtil;
-
 	private static final String COMMENT_NOT_EXIST_EXPRESSION = "original comment has been deleted";
 
 	@Resource
@@ -60,6 +57,9 @@ public class NotificationService {
 
 	@Resource
 	private MongoTemplate mongoTemplate;
+
+	@Resource
+	private WebsocketManager websocketManager;
 
 	public Notification getOne(String notificationId, NotificationCategory category) {
 		switch (category) {
@@ -97,7 +97,7 @@ public class NotificationService {
 		commentsNotificationRepository.save(notification);
 		CommentsNotificationVO commentsNotification = getCommentsNotification(notification.getNotificationId());
 		if (commentsNotification != null) {
-			WebsocketManager.sendTo(comment.getReplyCommentUserId(), objectUtil.write(commentsNotification));
+			websocketManager.sendTo(comment.getReplyCommentUserId(), new SocketMessageEntity<>("commentsNotification", commentsNotification));
 		}
 	}
 
@@ -163,7 +163,7 @@ public class NotificationService {
 		followsNotificationRepository.save(notification);
 		FollowsNotificationVO notificationVO = getFollowsNotification(notification.getNotificationId());
 		if (notificationVO != null) {
-			WebsocketManager.sendTo(friend.getFriendId(), objectUtil.write(notificationVO));
+			websocketManager.sendTo(friend.getFriendId(), new SocketMessageEntity<>("followsNotification", notificationVO));
 		}
 	}
 
@@ -219,7 +219,7 @@ public class NotificationService {
 		likesNotificationRepository.save(notification);
 		LikesNotificationVO likesNotification = getLikesNotification(notification.getNotificationId());
 		if (likesNotification != null) {
-			WebsocketManager.sendTo(post.getAuthorId(), objectUtil.write(likesNotification));
+			websocketManager.sendTo(post.getAuthorId(), new SocketMessageEntity<>("likesNotification", likesNotification));
 		}
 	}
 
@@ -236,7 +236,7 @@ public class NotificationService {
 		likesNotificationRepository.save(notification);
 		LikesNotificationVO likesNotification = getLikesNotification(notification.getNotificationId());
 		if (likesNotification != null) {
-			WebsocketManager.sendTo(comment.getCommentId(), objectUtil.write(likesNotification));
+			websocketManager.sendTo(comment.getCommentId(), new SocketMessageEntity<>("likesNotification", likesNotification));
 		}
 	}
 

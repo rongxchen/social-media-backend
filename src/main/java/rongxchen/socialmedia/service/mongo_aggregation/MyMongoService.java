@@ -1,4 +1,4 @@
-package rongxchen.socialmedia.service.common;
+package rongxchen.socialmedia.service.mongo_aggregation;
 
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
